@@ -27,8 +27,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['Super Admin', 'Managing Partner', 'Advisory Partner', 'Property Manager'],
-      default: 'Managing Partner',
+      enum: ['Super Admin', 'Managing Partner', 'Advisory Partner', 'Property Manager', 'Sales Rep'],
+      default: 'Sales Rep',
     },
     status: {
       type: String,

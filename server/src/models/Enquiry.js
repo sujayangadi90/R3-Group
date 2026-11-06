@@ -62,6 +62,15 @@ const enquirySchema = new mongoose.Schema(
       enum: ['New', 'Contacted', 'In Discussion', 'Site Visit', 'Closed'],
       default: 'New',
     },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    assignedToName: {
+      type: String,
+      default: '',
+    },
     adminNotes: {
       type: String,
       default: '',

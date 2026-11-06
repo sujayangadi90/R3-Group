@@ -17,6 +17,8 @@ import {
   Download,
   AlertCircle,
   RotateCcw,
+  UserCheck,
+  UserPlus,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -24,9 +26,11 @@ import { useAuth } from '../../context/AuthContext';
 export const AdminEnquiries = () => {
   const { user: currentUser } = useAuth();
   const [enquiries, setEnquiries] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Date Filter State
@@ -72,6 +76,21 @@ export const AdminEnquiries = () => {
     return { startDate: '', endDate: '' };
   };
 
+  // Fetch users for assignment dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.getUsers();
+        if (res.success && res.data) {
+          setAdminUsers(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load users for sales assignment:', err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const fetchEnquiries = async () => {
     setLoading(true);
     try {
@@ -82,6 +101,7 @@ export const AdminEnquiries = () => {
         search: searchTerm,
         startDate,
         endDate,
+        assignedTo: assignedFilter,
       });
       if (res.success && res.data) {
         setEnquiries(res.data);
@@ -95,7 +115,7 @@ export const AdminEnquiries = () => {
 
   useEffect(() => {
     fetchEnquiries();
-  }, [typeFilter, statusFilter, datePreset, customStartDate, customEndDate]);
+  }, [typeFilter, statusFilter, assignedFilter, datePreset, customStartDate, customEndDate]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -106,6 +126,38 @@ export const AdminEnquiries = () => {
     setDatePreset('all');
     setCustomStartDate('');
     setCustomEndDate('');
+  };
+
+  const handleAssignSales = async (enquiryId, userId) => {
+    const selectedUser = adminUsers.find((u) => u._id === userId);
+    const assignedToName = selectedUser ? (selectedUser.name || `@${selectedUser.username}`) : '';
+    setUpdatingId(enquiryId);
+    try {
+      const res = await api.updateEnquiry(enquiryId, {
+        assignedTo: userId || null,
+        assignedToName,
+      });
+      if (res.success) {
+        setEnquiries((prev) =>
+          prev.map((item) =>
+            item._id === enquiryId
+              ? { ...item, assignedTo: userId || null, assignedToName }
+              : item
+          )
+        );
+        if (selectedEnquiry && selectedEnquiry._id === enquiryId) {
+          setSelectedEnquiry({
+            ...selectedEnquiry,
+            assignedTo: userId || null,
+            assignedToName,
+          });
+        }
+      }
+    } catch (err) {
+      alert('Failed to reassign lead.');
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -363,12 +415,31 @@ export const AdminEnquiries = () => {
             </select>
           </div>
 
+          {/* Assigned Sales Rep Filter */}
+          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
+            <UserCheck className="w-3.5 h-3.5 text-gold shrink-0" />
+            <span className="text-xs font-semibold text-charcoal-700">Assigned Rep:</span>
+            <select
+              value={assignedFilter}
+              onChange={(e) => setAssignedFilter(e.target.value)}
+              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Sales Reps</option>
+              {adminUsers.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name || `@${u.username}`} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Reset All Filters button */}
-          {(typeFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
+          {(typeFilter !== 'all' || statusFilter !== 'all' || assignedFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
             <button
               onClick={() => {
                 setTypeFilter('all');
                 setStatusFilter('all');
+                setAssignedFilter('all');
                 handleResetDate();
                 setSearchTerm('');
               }}
@@ -414,6 +485,7 @@ export const AdminEnquiries = () => {
                   <th className="py-3 px-4">Client Details</th>
                   <th className="py-3 px-4">Property / Mandate</th>
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Assigned Rep</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -489,6 +561,25 @@ export const AdminEnquiries = () => {
                         <option value="Closed">Closed</option>
                       </select>
                     </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={item.assignedTo || ''}
+                        onChange={(e) => handleAssignSales(item._id, e.target.value)}
+                        disabled={updatingId === item._id}
+                        className={`text-xs font-medium px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${
+                          item.assignedTo
+                            ? 'bg-blue-50 text-blue-800 border-blue-200 font-semibold'
+                            : 'bg-gray-50 text-charcoal-400 border-gray-200'
+                        }`}
+                      >
+                        <option value="">Unassigned</option>
+                        {adminUsers.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name || `@${u.username}`} {u.role === 'Sales Rep' ? '★' : `(${u.role})`}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td
                       className="py-3.5 px-4 whitespace-nowrap text-right space-x-2"
                       onClick={(e) => e.stopPropagation()}
@@ -539,7 +630,7 @@ export const AdminEnquiries = () => {
             {/* Drawer Body */}
             <div className="p-6 space-y-6 flex-1">
               {/* Type and Status */}
-              <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
                 <div>
                   <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
                     Inquiry Type
@@ -562,6 +653,23 @@ export const AdminEnquiries = () => {
                     <option value="In Discussion">In Discussion</option>
                     <option value="Site Visit">Site Visit</option>
                     <option value="Closed">Closed</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                    Assigned Sales Rep
+                  </span>
+                  <select
+                    value={selectedEnquiry.assignedTo || ''}
+                    onChange={(e) => handleAssignSales(selectedEnquiry._id, e.target.value)}
+                    className="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-300 bg-white text-primary focus:outline-none"
+                  >
+                    <option value="">Unassigned</option>
+                    {adminUsers.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name || `@${u.username}`} ({u.role})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

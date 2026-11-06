@@ -304,6 +304,8 @@ export const AdminSettings = () => {
                               ? 'bg-purple-50 text-purple-700 border border-purple-200'
                               : u.role === 'Managing Partner'
                               ? 'bg-gold-subtle text-gold border border-gold/40'
+                              : u.role === 'Sales Rep'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
                               : 'bg-gray-100 text-charcoal-700'
                           }`}
                         >
@@ -501,6 +503,7 @@ export const AdminSettings = () => {
                     <option value="Super Admin">Super Admin</option>
                     <option value="Managing Partner">Managing Partner</option>
                     <option value="Advisory Partner">Advisory Partner</option>
+                    <option value="Sales Rep">Sales Rep</option>
                     <option value="Property Manager">Property Manager</option>
                   </select>
                 </div>

@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
 // GET /api/enquiries - List enquiries (Admin Only)
 router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const { type, status, search, startDate, endDate, page = 1, limit = 50 } = req.query;
+    const { type, status, search, startDate, endDate, assignedTo, page = 1, limit = 50 } = req.query;
 
     const query = {};
 
@@ -75,6 +75,10 @@ router.get('/', verifyAdmin, async (req, res) => {
 
     if (status && status !== 'all') {
       query.status = status;
+    }
+
+    if (assignedTo && assignedTo !== 'all') {
+      query.assignedTo = assignedTo;
     }
 
     if (startDate || endDate) {
@@ -136,10 +140,10 @@ router.get('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/enquiries/:id - Update status / notes (Admin Only)
+// PATCH /api/enquiries/:id - Update status / notes / assigned rep (Admin Only)
 router.patch('/:id', verifyAdmin, async (req, res) => {
   try {
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, assignedTo, assignedToName } = req.body;
     const enquiry = await Enquiry.findById(req.params.id);
 
     if (!enquiry) {
@@ -148,6 +152,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
 
     if (status) enquiry.status = status;
     if (adminNotes !== undefined) enquiry.adminNotes = adminNotes;
+    if (assignedTo !== undefined) {
+      enquiry.assignedTo = assignedTo || null;
+      enquiry.assignedToName = assignedToName || '';
+    }
 
     const updated = await enquiry.save();
 
