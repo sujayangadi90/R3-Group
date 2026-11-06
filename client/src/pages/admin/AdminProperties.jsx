@@ -19,6 +19,8 @@ import {
   HelpCircle,
   Star,
   Link as LinkIcon,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -27,6 +29,11 @@ export const AdminProperties = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
+
+  // Pagination state (20 per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -75,15 +82,19 @@ export const AdminProperties = () => {
   const [formData, setFormData] = useState(initialForm);
   const [amenityInput, setAmenityInput] = useState('');
 
-  const fetchProperties = async () => {
+  const fetchProperties = async (page = currentPage) => {
     setLoading(true);
     try {
       const res = await api.getProperties({
         type: typeFilter,
         search: searchTerm,
+        page,
+        limit: 20,
       });
       if (res.success && res.data) {
         setProperties(res.data);
+        if (res.totalPages !== undefined) setTotalPages(res.totalPages || 1);
+        if (res.total !== undefined) setTotalCount(res.total || res.data.length);
       }
     } catch (err) {
       console.error('Failed to fetch properties:', err);
@@ -93,12 +104,21 @@ export const AdminProperties = () => {
   };
 
   useEffect(() => {
-    fetchProperties();
+    setCurrentPage(1);
+    fetchProperties(1);
   }, [typeFilter]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      fetchProperties(newPage);
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchProperties();
+    setCurrentPage(1);
+    fetchProperties(1);
   };
 
   const openCreateModal = () => {
@@ -515,6 +535,39 @@ export const AdminProperties = () => {
             </table>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-charcoal-600 bg-white">
+          <div className="text-charcoal-500">
+            Showing <strong className="text-primary font-bold">{properties.length > 0 ? (currentPage - 1) * 20 + 1 : 0}</strong> to{' '}
+            <strong className="text-primary font-bold">{Math.min(currentPage * 20, totalCount || properties.length)}</strong> of{' '}
+            <strong className="text-primary font-bold">{totalCount || properties.length}</strong> luxury properties (20 / page)
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1 || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Previous</span>
+            </button>
+
+            <span className="px-2 font-bold text-primary">
+              Page {currentPage} of {totalPages || 1}
+            </span>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Create / Edit Property Modal */}

@@ -22,6 +22,8 @@ import {
   Flame,
   Thermometer,
   Plus,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -37,6 +39,11 @@ export const AdminEnquiries = () => {
   const [temperatureFilter, setTemperatureFilter] = useState('all');
   const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Pagination state (20 records per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Add Enquiry Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -119,7 +126,7 @@ export const AdminEnquiries = () => {
     fetchAuxData();
   }, []);
 
-  const fetchEnquiries = async () => {
+  const fetchEnquiries = async (page = currentPage) => {
     setLoading(true);
     try {
       const { startDate, endDate } = getDateRange();
@@ -131,9 +138,13 @@ export const AdminEnquiries = () => {
         startDate,
         endDate,
         assignedTo: assignedFilter,
+        page,
+        limit: 20,
       });
       if (res.success && res.data) {
         setEnquiries(res.data);
+        if (res.totalPages !== undefined) setTotalPages(res.totalPages || 1);
+        if (res.total !== undefined) setTotalCount(res.total || res.data.length);
       }
     } catch (err) {
       console.error('Failed to fetch enquiries:', err);
@@ -143,12 +154,21 @@ export const AdminEnquiries = () => {
   };
 
   useEffect(() => {
-    fetchEnquiries();
+    setCurrentPage(1);
+    fetchEnquiries(1);
   }, [typeFilter, statusFilter, temperatureFilter, assignedFilter, datePreset, customStartDate, customEndDate]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      fetchEnquiries(newPage);
+    }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchEnquiries();
+    setCurrentPage(1);
+    fetchEnquiries(1);
   };
 
   const handleResetDate = () => {
@@ -898,6 +918,39 @@ export const AdminEnquiries = () => {
             </table>
           </div>
         )}
+
+        {/* Pagination Controls */}
+        <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-charcoal-600 bg-white">
+          <div className="text-charcoal-500">
+            Showing <strong className="text-primary font-bold">{enquiries.length > 0 ? (currentPage - 1) * 20 + 1 : 0}</strong> to{' '}
+            <strong className="text-primary font-bold">{Math.min(currentPage * 20, totalCount || enquiries.length)}</strong> of{' '}
+            <strong className="text-primary font-bold">{totalCount || enquiries.length}</strong> inquiries (20 / page)
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1 || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Previous</span>
+            </button>
+
+            <span className="px-2 font-bold text-primary">
+              Page {currentPage} of {totalPages || 1}
+            </span>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Details Drawer / Modal */}
