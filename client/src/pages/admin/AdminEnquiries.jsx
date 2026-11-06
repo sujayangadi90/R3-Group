@@ -217,6 +217,8 @@ export const AdminEnquiries = () => {
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'In Discussion':
         return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Site Visit':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Closed':
         return 'bg-gray-100 text-gray-700 border-gray-200';
       default:
@@ -342,6 +344,7 @@ export const AdminEnquiries = () => {
               <option value="New">New</option>
               <option value="Contacted">Contacted</option>
               <option value="In Discussion">In Discussion</option>
+              <option value="Site Visit">Site Visit</option>
               <option value="Closed">Closed</option>
             </select>
           </div>
@@ -468,6 +471,7 @@ export const AdminEnquiries = () => {
                         <option value="New">New</option>
                         <option value="Contacted">Contacted</option>
                         <option value="In Discussion">In Discussion</option>
+                        <option value="Site Visit">Site Visit</option>
                         <option value="Closed">Closed</option>
                       </select>
                     </td>
@@ -542,6 +546,7 @@ export const AdminEnquiries = () => {
                     <option value="New">New</option>
                     <option value="Contacted">Contacted</option>
                     <option value="In Discussion">In Discussion</option>
+                    <option value="Site Visit">Site Visit</option>
                     <option value="Closed">Closed</option>
                   </select>
                 </div>
