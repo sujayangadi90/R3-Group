@@ -260,12 +260,37 @@ export const AdminProperties = () => {
       return;
     }
 
+    // Determine primary bedrooms, bathrooms, and carpetArea from configurations if provided
+    let primaryBhk = formData.bedrooms;
+    let primaryBaths = formData.bathrooms;
+    let primaryCarpet = formData.carpetArea;
+
+    if (formData.configurations && formData.configurations.length > 0) {
+      const bhkList = formData.configurations
+        .map((c) => c.bhk)
+        .filter(Boolean)
+        .join(', ');
+      if (bhkList) primaryBhk = bhkList;
+
+      const bathList = formData.configurations
+        .map((c) => c.bathrooms)
+        .filter(Boolean)
+        .join(', ');
+      if (bathList) primaryBaths = bathList;
+
+      const carpetList = formData.configurations
+        .map((c) => c.carpetArea || c.dimensions)
+        .filter(Boolean)
+        .join(' | ');
+      if (carpetList) primaryCarpet = carpetList;
+    }
+
     const payload = {
       ...formData,
       price: Number(formData.price),
-      bedrooms: isNaN(Number(formData.bedrooms)) ? formData.bedrooms : Number(formData.bedrooms),
-      bathrooms: isNaN(Number(formData.bathrooms)) ? formData.bathrooms : Number(formData.bathrooms),
-      carpetArea: isNaN(Number(formData.carpetArea)) ? formData.carpetArea : Number(formData.carpetArea),
+      bedrooms: primaryBhk || 'Flexible',
+      bathrooms: primaryBaths || 'Flexible',
+      carpetArea: primaryCarpet || 'On Request',
       totalFloors: Number(formData.totalFloors) || 1,
       configurations: formData.configurations || [],
       images: formData.images,
@@ -675,76 +700,48 @@ export const AdminProperties = () => {
                 </div>
               </div>
 
-              {/* Bedrooms, Bathrooms, Carpet Area, Floor */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {/* Carpet Area & Possession */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Bedrooms (BHK)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 3 or 3, 4, 5"
-                    value={formData.bedrooms}
-                    onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. 3, 4 or 3-5 BHK</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Bathrooms
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 3 or 3-5"
-                    value={formData.bathrooms}
-                    onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. 3, 4 or 3.5</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Carpet (Sq.Ft) *
+                    Carpet Area / Total Area (Sq.Ft) *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 6450 or 3200 - 6450"
+                    placeholder="e.g. 5,000 sq.ft or 3,200 - 6,450 sq.ft"
                     value={formData.carpetArea}
                     onChange={(e) => setFormData({ ...formData, carpetArea: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
-                  <span className="text-[10px] text-charcoal-400 block mt-0.5">Single or range</span>
+                  <span className="text-[10px] text-charcoal-400 block mt-0.5">Primary area or range for this listing</span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Possession
+                    Possession Status *
                   </label>
                   <input
                     type="text"
-                    placeholder="Immediate"
+                    required
+                    placeholder="e.g. Immediate or Q4 2026"
                     value={formData.possessionDate}
                     onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
-                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. Immediate or Q4 2026</span>
                 </div>
               </div>
 
-              {/* Multiple Configurations & Dimensions Builder (Villa, Penthouse, Apartment) */}
-              <div className="p-4 rounded-xl bg-surface-warm border border-gold/30 space-y-3">
+              {/* Property Configurations & Layouts Builder */}
+              <div className="p-4 rounded-xl bg-surface-warm border border-gold/40 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-gold" />
-                      <span>Multiple Configurations & Dimensions (Optional)</span>
+                      <span>Property Configurations & Layouts</span>
                     </h4>
                     <p className="text-[11px] text-charcoal-500 mt-0.5">
-                      Specify available bedroom variations, bathroom combinations, and dimensions for this {formData.propertyType}.
+                      Add specific configurations (e.g. 3 BHK, 4 BHK, Commercial Floor, Villa Layout) with bathrooms, dimensions, and carpet area.
                     </p>
                   </div>
                   <button
@@ -755,8 +752,8 @@ export const AdminProperties = () => {
                         configurations: [
                           ...(formData.configurations || []),
                           {
-                            bhk: `${formData.bedrooms || 3} BHK`,
-                            bathrooms: `${formData.bathrooms || 3} Baths`,
+                            bhk: formData.propertyType === 'Commercial' ? 'Executive Floor' : '3 BHK',
+                            bathrooms: '3 Baths',
                             dimensions: '',
                             carpetArea: '',
                             price: 'Price on Request',
@@ -764,9 +761,9 @@ export const AdminProperties = () => {
                         ],
                       });
                     }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary hover:bg-black text-white text-[11px] font-semibold transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary hover:bg-black text-white text-xs font-bold transition-colors shadow-sm"
                   >
-                    <Plus className="w-3 h-3 text-gold" />
+                    <Plus className="w-3.5 h-3.5 text-gold" />
                     <span>Add Configuration</span>
                   </button>
                 </div>
@@ -776,15 +773,15 @@ export const AdminProperties = () => {
                     {formData.configurations.map((config, idx) => (
                       <div
                         key={idx}
-                        className="p-3 bg-white rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center"
+                        className="p-3 bg-white rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center shadow-xs"
                       >
                         <div className="sm:col-span-3">
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
-                            Configuration / BHK
+                            Configuration / BHK *
                           </label>
                           <input
                             type="text"
-                            placeholder="e.g. 3 BHK Luxury"
+                            placeholder="e.g. 3 BHK or Commercial Spire"
                             value={config.bhk}
                             onChange={(e) => {
                               const updated = [...formData.configurations];
@@ -797,7 +794,7 @@ export const AdminProperties = () => {
 
                         <div className="sm:col-span-2">
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
-                            Baths
+                            Bathrooms
                           </label>
                           <input
                             type="text"
@@ -863,8 +860,11 @@ export const AdminProperties = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-3 bg-white/70 rounded-xl border border-dashed border-gray-300 text-center text-charcoal-500 text-xs">
-                    No multiple configurations added yet. Single configuration ({formData.bedrooms || 3} BHK / {formData.bathrooms || 3} Baths / {formData.carpetArea || '...'} sq.ft) will be used.
+                  <div className="p-4 bg-white rounded-xl border border-dashed border-gray-300 text-center text-charcoal-500 text-xs flex flex-col items-center gap-1">
+                    <p className="font-semibold text-charcoal-700">No layouts configured yet.</p>
+                    <p className="text-[11px] text-charcoal-400">
+                      Click "+ Add Configuration" above to specify custom BHK, bathroom count, and dimensions for this property.
+                    </p>
                   </div>
                 )}
               </div>
