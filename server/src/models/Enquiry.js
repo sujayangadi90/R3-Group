@@ -62,6 +62,11 @@ const enquirySchema = new mongoose.Schema(
       enum: ['New', 'Contacted', 'In Discussion', 'Site Visit', 'Negotiation', 'Closed', 'Lost'],
       default: 'New',
     },
+    temperature: {
+      type: String,
+      enum: ['Cold', 'Warm', 'Hot', ''],
+      default: 'Warm',
+    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

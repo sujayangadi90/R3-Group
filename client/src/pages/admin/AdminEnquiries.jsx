@@ -19,6 +19,8 @@ import {
   RotateCcw,
   UserCheck,
   UserPlus,
+  Flame,
+  Thermometer,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +32,7 @@ export const AdminEnquiries = () => {
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [temperatureFilter, setTemperatureFilter] = useState('all');
   const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -98,6 +101,7 @@ export const AdminEnquiries = () => {
       const res = await api.getEnquiries({
         type: typeFilter,
         status: statusFilter,
+        temperature: temperatureFilter,
         search: searchTerm,
         startDate,
         endDate,
@@ -115,7 +119,7 @@ export const AdminEnquiries = () => {
 
   useEffect(() => {
     fetchEnquiries();
-  }, [typeFilter, statusFilter, assignedFilter, datePreset, customStartDate, customEndDate]);
+  }, [typeFilter, statusFilter, temperatureFilter, assignedFilter, datePreset, customStartDate, customEndDate]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -174,6 +178,25 @@ export const AdminEnquiries = () => {
       }
     } catch (err) {
       console.error('Failed to update status:', err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleTemperatureChange = async (id, newTemp) => {
+    setUpdatingId(id);
+    try {
+      const res = await api.updateEnquiry(id, { temperature: newTemp });
+      if (res.success) {
+        setEnquiries((prev) =>
+          prev.map((item) => (item._id === id ? { ...item, temperature: newTemp } : item))
+        );
+        if (selectedEnquiry && selectedEnquiry._id === id) {
+          setSelectedEnquiry({ ...selectedEnquiry, temperature: newTemp });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update temperature:', err);
     } finally {
       setUpdatingId(null);
     }
@@ -291,6 +314,31 @@ export const AdminEnquiries = () => {
         return 'bg-rose-50 text-rose-700 border-rose-200';
       default:
         return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
+
+  const getTemperatureBadge = (temp) => {
+    switch (temp) {
+      case 'Hot':
+        return {
+          pill: 'bg-red-50 text-red-700 border-red-200 font-bold',
+          icon: '🔥',
+        };
+      case 'Warm':
+        return {
+          pill: 'bg-amber-50 text-amber-700 border-amber-200 font-semibold',
+          icon: '⚡',
+        };
+      case 'Cold':
+        return {
+          pill: 'bg-cyan-50 text-cyan-700 border-cyan-200 font-medium',
+          icon: '❄️',
+        };
+      default:
+        return {
+          pill: 'bg-gray-50 text-gray-600 border-gray-200',
+          icon: '•',
+        };
     }
   };
 
@@ -421,6 +469,22 @@ export const AdminEnquiries = () => {
             </select>
           </div>
 
+          {/* Temperature (Intent) Filter */}
+          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
+            <Flame className="w-3.5 h-3.5 text-red-500 shrink-0" />
+            <span className="text-xs font-semibold text-charcoal-700">Intent:</span>
+            <select
+              value={temperatureFilter}
+              onChange={(e) => setTemperatureFilter(e.target.value)}
+              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
+            >
+              <option value="all">All (Cold/Warm/Hot)</option>
+              <option value="Hot">🔥 Hot</option>
+              <option value="Warm">⚡ Warm</option>
+              <option value="Cold">❄️ Cold</option>
+            </select>
+          </div>
+
           {/* Assigned Sales Rep Filter */}
           <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
             <UserCheck className="w-3.5 h-3.5 text-gold shrink-0" />
@@ -440,11 +504,12 @@ export const AdminEnquiries = () => {
           </div>
 
           {/* Reset All Filters button */}
-          {(typeFilter !== 'all' || statusFilter !== 'all' || assignedFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
+          {(typeFilter !== 'all' || statusFilter !== 'all' || temperatureFilter !== 'all' || assignedFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
             <button
               onClick={() => {
                 setTypeFilter('all');
                 setStatusFilter('all');
+                setTemperatureFilter('all');
                 setAssignedFilter('all');
                 handleResetDate();
                 setSearchTerm('');
@@ -491,6 +556,7 @@ export const AdminEnquiries = () => {
                   <th className="py-3 px-4">Client Details</th>
                   <th className="py-3 px-4">Property / Mandate</th>
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Intent (Lead Temp)</th>
                   <th className="py-3 px-4">Assigned Rep</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -567,6 +633,20 @@ export const AdminEnquiries = () => {
                         <option value="Negotiation">Negotiation</option>
                         <option value="Closed">Closed</option>
                         <option value="Lost">Lost</option>
+                      </select>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={item.temperature || 'Warm'}
+                        onChange={(e) => handleTemperatureChange(item._id, e.target.value)}
+                        disabled={updatingId === item._id}
+                        className={`text-xs px-2.5 py-1 rounded-full border focus:outline-none cursor-pointer ${
+                          getTemperatureBadge(item.temperature || 'Warm').pill
+                        }`}
+                      >
+                        <option value="Hot">🔥 Hot</option>
+                        <option value="Warm">⚡ Warm</option>
+                        <option value="Cold">❄️ Cold</option>
                       </select>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -663,6 +743,22 @@ export const AdminEnquiries = () => {
                     <option value="Negotiation">Negotiation</option>
                     <option value="Closed">Closed</option>
                     <option value="Lost">Lost</option>
+                  </select>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                    Intent (Temperature)
+                  </span>
+                  <select
+                    value={selectedEnquiry.temperature || 'Warm'}
+                    onChange={(e) => handleTemperatureChange(selectedEnquiry._id, e.target.value)}
+                    className={`text-xs px-3 py-1 rounded-full border ${
+                      getTemperatureBadge(selectedEnquiry.temperature || 'Warm').pill
+                    }`}
+                  >
+                    <option value="Hot">🔥 Hot Intent</option>
+                    <option value="Warm">⚡ Warm Intent</option>
+                    <option value="Cold">❄️ Cold Intent</option>
                   </select>
                 </div>
                 <div>

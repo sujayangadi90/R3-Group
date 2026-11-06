@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
 // GET /api/enquiries - List enquiries (Admin Only)
 router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const { type, status, search, startDate, endDate, assignedTo, page = 1, limit = 50 } = req.query;
+    const { type, status, search, startDate, endDate, assignedTo, temperature, page = 1, limit = 50 } = req.query;
 
     const query = {};
 
@@ -75,6 +75,10 @@ router.get('/', verifyAdmin, async (req, res) => {
 
     if (status && status !== 'all') {
       query.status = status;
+    }
+
+    if (temperature && temperature !== 'all') {
+      query.temperature = temperature;
     }
 
     if (assignedTo && assignedTo !== 'all') {
@@ -140,10 +144,10 @@ router.get('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/enquiries/:id - Update status / notes / assigned rep (Admin Only)
+// PATCH /api/enquiries/:id - Update status / notes / assigned rep / temperature (Admin Only)
 router.patch('/:id', verifyAdmin, async (req, res) => {
   try {
-    const { status, adminNotes, assignedTo, assignedToName } = req.body;
+    const { status, adminNotes, assignedTo, assignedToName, temperature } = req.body;
     const enquiry = await Enquiry.findById(req.params.id);
 
     if (!enquiry) {
@@ -151,6 +155,7 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
     }
 
     if (status) enquiry.status = status;
+    if (temperature !== undefined) enquiry.temperature = temperature;
     if (adminNotes !== undefined) enquiry.adminNotes = adminNotes;
     if (assignedTo !== undefined) {
       enquiry.assignedTo = assignedTo || null;
