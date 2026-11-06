@@ -16,6 +16,7 @@ import {
   Save,
   Download,
   AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -26,18 +27,59 @@ export const AdminEnquiries = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Date Filter State
+  const [datePreset, setDatePreset] = useState('all'); // 'all', 'today', 'yesterday', '7days', 'thisMonth', 'custom'
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+
   // Selected enquiry for inspection drawer
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   const [editingNotes, setEditingNotes] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
 
+  // Compute start & end dates based on preset
+  const getDateRange = () => {
+    const now = new Date();
+    if (datePreset === 'today') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      return { startDate: start, endDate: '' };
+    }
+    if (datePreset === 'yesterday') {
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      const start = new Date(y.getFullYear(), y.getMonth(), y.getDate()).toISOString();
+      const end = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999).toISOString();
+      return { startDate: start, endDate: end };
+    }
+    if (datePreset === '7days') {
+      const d = new Date(now);
+      d.setDate(d.getDate() - 7);
+      const start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+      return { startDate: start, endDate: '' };
+    }
+    if (datePreset === 'thisMonth') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      return { startDate: start, endDate: '' };
+    }
+    if (datePreset === 'custom') {
+      return {
+        startDate: customStartDate ? new Date(customStartDate).toISOString() : '',
+        endDate: customEndDate ? new Date(customEndDate).toISOString() : '',
+      };
+    }
+    return { startDate: '', endDate: '' };
+  };
+
   const fetchEnquiries = async () => {
     setLoading(true);
     try {
+      const { startDate, endDate } = getDateRange();
       const res = await api.getEnquiries({
         type: typeFilter,
         status: statusFilter,
         search: searchTerm,
+        startDate,
+        endDate,
       });
       if (res.success && res.data) {
         setEnquiries(res.data);
@@ -51,11 +93,17 @@ export const AdminEnquiries = () => {
 
   useEffect(() => {
     fetchEnquiries();
-  }, [typeFilter, statusFilter]);
+  }, [typeFilter, statusFilter, datePreset, customStartDate, customEndDate]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchEnquiries();
+  };
+
+  const handleResetDate = () => {
+    setDatePreset('all');
+    setCustomStartDate('');
+    setCustomEndDate('');
   };
 
   const handleStatusChange = async (id, newStatus) => {
@@ -179,33 +227,101 @@ export const AdminEnquiries = () => {
   return (
     <div className="space-y-6">
       {/* Controls Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-[#ECECE8] shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-          <Search className="w-4 h-4 text-charcoal-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search by client name, email, phone, or property..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-24 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-          />
-          <button
-            type="submit"
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-black transition-colors"
-          >
-            Filter
-          </button>
-        </form>
+      <div className="bg-white p-5 rounded-2xl border border-[#ECECE8] shadow-sm space-y-4">
+        {/* Top Row: Search + Action Buttons */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+          {/* Search */}
+          <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+            <Search className="w-4 h-4 text-charcoal-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by client name, email, phone, or property..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-24 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+            />
+            <button
+              type="submit"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-black transition-colors"
+            >
+              Filter
+            </button>
+          </form>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-charcoal-500">Type:</span>
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2 self-start lg:self-auto">
+            <button
+              onClick={exportCSV}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-charcoal-700 transition-colors shadow-sm"
+              title="Export filtered records to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-gold" />
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Filter Pills Row: Date Filter + Type + Status */}
+        <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
+          {/* ========================================================= */}
+          {/* DATE FILTER */}
+          {/* ========================================================= */}
+          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
+            <Calendar className="w-3.5 h-3.5 text-gold shrink-0" />
+            <span className="text-xs font-semibold text-charcoal-700">Date:</span>
+            <select
+              value={datePreset}
+              onChange={(e) => setDatePreset(e.target.value)}
+              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="7days">Last 7 Days</option>
+              <option value="thisMonth">This Month</option>
+              <option value="custom">Custom Range...</option>
+            </select>
+          </div>
+
+          {/* Custom Date Pickers (visible if 'custom' is selected) */}
+          {datePreset === 'custom' && (
+            <div className="flex items-center gap-2 bg-surface-warm px-3 py-1.5 rounded-xl border border-gold/40 animate-in fade-in duration-150">
+              <span className="text-[11px] text-charcoal-500 font-semibold">From:</span>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="bg-white px-2 py-0.5 rounded border border-gray-300 text-xs text-primary focus:outline-none"
+              />
+              <span className="text-[11px] text-charcoal-500 font-semibold">To:</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="bg-white px-2 py-0.5 rounded border border-gray-300 text-xs text-primary focus:outline-none"
+              />
+            </div>
+          )}
+
+          {/* Reset Date Pill if active */}
+          {datePreset !== 'all' && (
+            <button
+              onClick={handleResetDate}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg transition-colors"
+              title="Clear date filter"
+            >
+              <X className="w-3 h-3" />
+              <span>Clear Date</span>
+            </button>
+          )}
+
+          {/* Type Filter */}
+          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
+            <span className="text-xs font-semibold text-charcoal-700">Type:</span>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none"
+              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
             >
               <option value="all">All Enquiries</option>
               <option value="site_visit">Site Visits</option>
@@ -214,12 +330,13 @@ export const AdminEnquiries = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold text-charcoal-500">Status:</span>
+          {/* Status Filter */}
+          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
+            <span className="text-xs font-semibold text-charcoal-700">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none"
+              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
               <option value="New">New</option>
@@ -229,23 +346,37 @@ export const AdminEnquiries = () => {
             </select>
           </div>
 
-          <button
-            onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-charcoal-700 transition-colors"
-            title="Export CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-gold" />
-            <span>Export CSV</span>
-          </button>
+          {/* Reset All Filters button */}
+          {(typeFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
+            <button
+              onClick={() => {
+                setTypeFilter('all');
+                setStatusFilter('all');
+                handleResetDate();
+                setSearchTerm('');
+              }}
+              className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-charcoal-500 hover:text-primary transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset All</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Leads Table */}
       <div className="bg-white rounded-2xl border border-[#ECECE8] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-primary text-sm">
-            Collected Leads & Mandates ({enquiries.length})
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-primary text-sm">
+              Collected Leads & Mandates ({enquiries.length})
+            </h3>
+            {datePreset !== 'all' && (
+              <span className="px-2 py-0.5 rounded-md bg-gold-subtle text-gold text-[10px] font-bold">
+                Filtered by Date ({datePreset})
+              </span>
+            )}
+          </div>
           <span className="text-xs text-charcoal-500">Click row or "View Dossier" to inspect full details</span>
         </div>
 
@@ -254,7 +385,7 @@ export const AdminEnquiries = () => {
         ) : enquiries.length === 0 ? (
           <div className="p-12 text-center space-y-2">
             <p className="font-bold text-primary">No enquiries matching filter.</p>
-            <p className="text-xs text-charcoal-500">Try clearing your search or status filters.</p>
+            <p className="text-xs text-charcoal-500">Try adjusting your date range, search query, or status filters.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -277,11 +408,19 @@ export const AdminEnquiries = () => {
                     onClick={() => openDrawer(item)}
                   >
                     <td className="py-3.5 px-4 whitespace-nowrap text-charcoal-500">
-                      {new Date(item.createdAt).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                      <div className="font-semibold text-primary">
+                        {new Date(item.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      <div className="text-[10px] text-charcoal-400">
+                        {new Date(item.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {getTypeBadge(item.type)}

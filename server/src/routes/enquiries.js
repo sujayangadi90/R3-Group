@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
 // GET /api/enquiries - List enquiries (Admin Only)
 router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const { type, status, search, page = 1, limit = 50 } = req.query;
+    const { type, status, search, startDate, endDate, page = 1, limit = 50 } = req.query;
 
     const query = {};
 
@@ -75,6 +75,18 @@ router.get('/', verifyAdmin, async (req, res) => {
 
     if (status && status !== 'all') {
       query.status = status;
+    }
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) {
+        query.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = end;
+      }
     }
 
     if (search) {
