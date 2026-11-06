@@ -31,6 +31,40 @@ export const api = {
     return res.json();
   },
 
+  // Users Management (Admin Users)
+  async getUsers() {
+    const res = await fetch(`${API_BASE}/users`, {
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
+
+  async createUser(data) {
+    const res = await fetch(`${API_BASE}/users`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async updateUser(id, data) {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async deleteUser(id) {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
+
   // File Upload
   async uploadPhotos(files) {
     const formData = new FormData();

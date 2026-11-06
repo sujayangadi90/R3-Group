@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Property from '../models/Property.js';
 import Enquiry from '../models/Enquiry.js';
+import User from '../models/User.js';
 import { initialProperties, initialEnquiries } from './seedData.js';
 
 dotenv.config();
@@ -10,9 +11,28 @@ const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/r3_group_real_
 
 export const seedDatabase = async (force = false) => {
   try {
+    // 1. Ensure default Admin User exists
+    const defaultUsername = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'ramesh';
+
+    const existingAdmin = await User.findOne({ username: defaultUsername });
+    if (!existingAdmin) {
+      await User.create({
+        username: defaultUsername,
+        password: defaultPassword,
+        name: 'R3 Group Administrator',
+        email: 'admin@r3group.in',
+        role: 'Super Admin',
+        status: 'Active',
+        isPrimaryAdmin: true,
+      });
+      console.log(`[Database Seed] Default admin user '${defaultUsername}' initialized.`);
+    }
+
+    // 2. Properties
     const propertyCount = await Property.countDocuments();
     if (propertyCount > 0 && !force) {
-      console.log(`[Database Seed] Database already contains ${propertyCount} properties. Skipping seed.`);
+      console.log(`[Database Seed] Database already contains ${propertyCount} properties.`);
       return;
     }
 
@@ -43,7 +63,7 @@ if (process.argv[1]?.endsWith('seed.js')) {
     .connect(uri)
     .then(async () => {
       console.log(`[MongoDB] Connected for direct seeding.`);
-      await seedDatabase(true);
+      await seedDatabase(false);
       await mongoose.disconnect();
       console.log('[MongoDB] Disconnected after seeding.');
       process.exit(0);

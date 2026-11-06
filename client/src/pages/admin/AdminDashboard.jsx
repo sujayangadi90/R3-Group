@@ -13,19 +13,21 @@ import {
   Menu,
   X,
   User,
-  LayoutDashboard,
+  Settings,
   PlusCircle,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { AdminEnquiries } from './AdminEnquiries';
 import { AdminProperties } from './AdminProperties';
+import { AdminSettings } from './AdminSettings';
 
 export const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'properties'
+  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'properties' | 'settings'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProperties: 0,
@@ -204,6 +206,34 @@ export const AdminDashboard = () => {
                     {stats.totalProperties}
                   </span>
                 </button>
+
+                {/* 3. Settings (User Management) */}
+                <button
+                  onClick={() => {
+                    setActiveTab('settings');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left ${
+                    activeTab === 'settings'
+                      ? 'bg-gold text-white shadow-md'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-white' : 'text-gold'}`} />
+                    <span>3. Settings & Users</span>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      activeTab === 'settings'
+                        ? 'bg-white text-gold'
+                        : 'bg-white/10 text-gray-300'
+                    }`}
+                  >
+                    Access
+                  </span>
+                </button>
               </nav>
             </div>
 
@@ -253,7 +283,7 @@ export const AdminDashboard = () => {
                   {user?.username || 'admin'}
                 </span>
                 <span className="text-[10px] text-gold uppercase tracking-wider font-semibold block">
-                  Managing Partner
+                  {user?.role || 'Managing Partner'}
                 </span>
               </div>
             </div>
@@ -288,7 +318,11 @@ export const AdminDashboard = () => {
               Administrative Control Desk
             </span>
             <h1 className="text-xl font-extrabold text-primary tracking-tight">
-              {activeTab === 'enquiries' ? '1. Enquiries & Mandates Desk' : '2. Properties Portfolio Management'}
+              {activeTab === 'enquiries'
+                ? '1. Enquiries & Mandates Desk'
+                : activeTab === 'properties'
+                ? '2. Properties Portfolio Management'
+                : '3. Settings & Administrator User Management'}
             </h1>
           </div>
 
@@ -312,7 +346,7 @@ export const AdminDashboard = () => {
 
         {/* Content Body */}
         <main className="p-4 sm:p-6 lg:p-8 space-y-8 flex-1">
-          {/* Key Metric Cards */}
+          {/* Key Metric Cards (shown on enquiries & properties, or compact overview on settings) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
               <div className="flex items-center justify-between">
@@ -365,7 +399,13 @@ export const AdminDashboard = () => {
 
           {/* Active Module */}
           <div>
-            {activeTab === 'enquiries' ? <AdminEnquiries /> : <AdminProperties />}
+            {activeTab === 'enquiries' ? (
+              <AdminEnquiries />
+            ) : activeTab === 'properties' ? (
+              <AdminProperties />
+            ) : (
+              <AdminSettings />
+            )}
           </div>
         </main>
       </div>

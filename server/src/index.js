@@ -11,6 +11,7 @@ import propertyRoutes from './routes/properties.js';
 import enquiryRoutes from './routes/enquiries.js';
 import statsRoutes from './routes/stats.js';
 import uploadRoutes from './routes/upload.js';
+import userRoutes from './routes/users.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', userRoutes);
 
 // Serve Frontend in Production if built
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
