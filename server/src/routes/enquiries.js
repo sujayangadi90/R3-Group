@@ -56,7 +56,6 @@ router.post('/', async (req, res) => {
       assignedTo: assignedTo || null,
       assignedToName: assignedToName || '',
     });
-    });
 
     const savedEnquiry = await enquiry.save();
 
