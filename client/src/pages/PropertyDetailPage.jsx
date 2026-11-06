@@ -224,7 +224,7 @@ export const PropertyDetailPage = () => {
               <div>
                 <span className="block text-xs font-semibold text-charcoal-500 uppercase">Configuration</span>
                 <span className="text-lg font-bold text-primary mt-0.5 block">
-                  {property.bedrooms > 0 ? `${property.bedrooms} BHK` : property.propertyType}
+                  {property.bedrooms ? (typeof property.bedrooms === 'string' && property.bedrooms.includes('BHK') ? property.bedrooms : `${property.bedrooms} BHK`) : property.propertyType}
                 </span>
               </div>
               <div>
@@ -234,9 +234,9 @@ export const PropertyDetailPage = () => {
                 </span>
               </div>
               <div>
-                <span className="block text-xs font-semibold text-charcoal-500 uppercase">Floor Elevation</span>
+                <span className="block text-xs font-semibold text-charcoal-500 uppercase">Bathrooms</span>
                 <span className="text-lg font-bold text-primary mt-0.5 block">
-                  {property.floor || 'Higher Floor'}
+                  {property.bathrooms ? `${property.bathrooms} ${String(property.bathrooms).toLowerCase().includes('bath') ? '' : 'Baths'}` : 'N/A'}
                 </span>
               </div>
               <div>
@@ -246,6 +246,48 @@ export const PropertyDetailPage = () => {
                 </span>
               </div>
             </div>
+
+            {/* Multiple Unit Configurations & Dimension Options (If configured) */}
+            {property.configurations && property.configurations.length > 0 && (
+              <div className="p-8 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-primary">Available Layouts & Configurations</h2>
+                    <p className="text-xs text-charcoal-500 mt-0.5">
+                      Multiple dimensions and bedroom configurations available for this {property.propertyType}
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-gold/10 text-gold text-xs font-bold uppercase tracking-wider">
+                    {property.configurations.length} Options
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-warm border-b border-gray-100 text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
+                        <th className="py-3 px-4">Configuration</th>
+                        <th className="py-3 px-4">Bathrooms</th>
+                        <th className="py-3 px-4">Dimensions</th>
+                        <th className="py-3 px-4">Carpet Area</th>
+                        <th className="py-3 px-4 text-right">Pricing</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs">
+                      {property.configurations.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-surface/50">
+                          <td className="py-3.5 px-4 font-bold text-primary">{item.bhk}</td>
+                          <td className="py-3.5 px-4 text-charcoal-600 font-semibold">{item.bathrooms || '—'}</td>
+                          <td className="py-3.5 px-4 text-charcoal-600">{item.dimensions || '—'}</td>
+                          <td className="py-3.5 px-4 font-semibold text-primary">{item.carpetArea || '—'}</td>
+                          <td className="py-3.5 px-4 text-right font-bold text-gold">Price on Request</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Architectural Overview */}
             <div className="p-8 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-4">

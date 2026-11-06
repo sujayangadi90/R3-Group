@@ -61,6 +61,7 @@ export const AdminProperties = () => {
     status: 'Ready to Move',
     possessionDate: 'Immediate',
     featured: false,
+    configurations: [], // Custom Bedroom/Bathroom/Dimension configurations
     images: [],
     amenities: [
       'Private Swimming Pool',
@@ -130,6 +131,7 @@ export const AdminProperties = () => {
       status: property.status || 'Ready to Move',
       possessionDate: property.possessionDate || 'Immediate',
       featured: property.featured || false,
+      configurations: Array.isArray(property.configurations) ? property.configurations : [],
       images: property.images || [],
       amenities: property.amenities || [],
       reraId: property.reraId || '',
@@ -261,10 +263,11 @@ export const AdminProperties = () => {
     const payload = {
       ...formData,
       price: Number(formData.price),
-      bedrooms: Number(formData.bedrooms),
-      bathrooms: Number(formData.bathrooms),
-      carpetArea: Number(formData.carpetArea),
-      totalFloors: Number(formData.totalFloors),
+      bedrooms: isNaN(Number(formData.bedrooms)) ? formData.bedrooms : Number(formData.bedrooms),
+      bathrooms: isNaN(Number(formData.bathrooms)) ? formData.bathrooms : Number(formData.bathrooms),
+      carpetArea: isNaN(Number(formData.carpetArea)) ? formData.carpetArea : Number(formData.carpetArea),
+      totalFloors: Number(formData.totalFloors) || 1,
+      configurations: formData.configurations || [],
       images: formData.images,
     };
 
@@ -679,11 +682,13 @@ export const AdminProperties = () => {
                     Bedrooms (BHK)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    placeholder="e.g. 3 or 3, 4, 5"
                     value={formData.bedrooms}
                     onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
+                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. 3, 4 or 3-5 BHK</span>
                 </div>
 
                 <div>
@@ -691,11 +696,13 @@ export const AdminProperties = () => {
                     Bathrooms
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    placeholder="e.g. 3 or 3-5"
                     value={formData.bathrooms}
                     onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
+                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. 3, 4 or 3.5</span>
                 </div>
 
                 <div>
@@ -703,13 +710,14 @@ export const AdminProperties = () => {
                     Carpet (Sq.Ft) *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    placeholder="6450"
+                    placeholder="e.g. 6450 or 3200 - 6450"
                     value={formData.carpetArea}
                     onChange={(e) => setFormData({ ...formData, carpetArea: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
+                  <span className="text-[10px] text-charcoal-400 block mt-0.5">Single or range</span>
                 </div>
 
                 <div>
@@ -723,7 +731,142 @@ export const AdminProperties = () => {
                     onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
+                  <span className="text-[10px] text-charcoal-400 block mt-0.5">e.g. Immediate or Q4 2026</span>
                 </div>
+              </div>
+
+              {/* Multiple Configurations & Dimensions Builder (Villa, Penthouse, Apartment) */}
+              <div className="p-4 rounded-xl bg-surface-warm border border-gold/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-gold" />
+                      <span>Multiple Configurations & Dimensions (Optional)</span>
+                    </h4>
+                    <p className="text-[11px] text-charcoal-500 mt-0.5">
+                      Specify available bedroom variations, bathroom combinations, and dimensions for this {formData.propertyType}.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        configurations: [
+                          ...(formData.configurations || []),
+                          {
+                            bhk: `${formData.bedrooms || 3} BHK`,
+                            bathrooms: `${formData.bathrooms || 3} Baths`,
+                            dimensions: '',
+                            carpetArea: '',
+                            price: 'Price on Request',
+                          },
+                        ],
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary hover:bg-black text-white text-[11px] font-semibold transition-colors"
+                  >
+                    <Plus className="w-3 h-3 text-gold" />
+                    <span>Add Configuration</span>
+                  </button>
+                </div>
+
+                {formData.configurations && formData.configurations.length > 0 ? (
+                  <div className="space-y-2.5 pt-2">
+                    {formData.configurations.map((config, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 bg-white rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center"
+                      >
+                        <div className="sm:col-span-3">
+                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                            Configuration / BHK
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 3 BHK Luxury"
+                            value={config.bhk}
+                            onChange={(e) => {
+                              const updated = [...formData.configurations];
+                              updated[idx].bhk = e.target.value;
+                              setFormData({ ...formData, configurations: updated });
+                            }}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary font-semibold"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                            Baths
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 3 Baths"
+                            value={config.bathrooms}
+                            onChange={(e) => {
+                              const updated = [...formData.configurations];
+                              updated[idx].bathrooms = e.target.value;
+                              setFormData({ ...formData, configurations: updated });
+                            }}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                            Dimensions / Plot Size
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 40 x 60 ft or 3,200 sq.ft"
+                            value={config.dimensions}
+                            onChange={(e) => {
+                              const updated = [...formData.configurations];
+                              updated[idx].dimensions = e.target.value;
+                              setFormData({ ...formData, configurations: updated });
+                            }}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                            Carpet Area
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. 2,650 sq.ft"
+                            value={config.carpetArea}
+                            onChange={(e) => {
+                              const updated = [...formData.configurations];
+                              updated[idx].carpetArea = e.target.value;
+                              setFormData({ ...formData, configurations: updated });
+                            }}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-1 flex justify-end items-end pt-3 sm:pt-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formData.configurations.filter((_, i) => i !== idx);
+                              setFormData({ ...formData, configurations: updated });
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg border border-red-200"
+                            title="Remove Configuration"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 bg-white/70 rounded-xl border border-dashed border-gray-300 text-center text-charcoal-500 text-xs">
+                    No multiple configurations added yet. Single configuration ({formData.bedrooms || 3} BHK / {formData.bathrooms || 3} Baths / {formData.carpetArea || '...'} sq.ft) will be used.
+                  </div>
+                )}
               </div>
 
               {/* Tagline & Description */}

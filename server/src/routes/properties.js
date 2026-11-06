@@ -48,9 +48,18 @@ router.get('/', async (req, res) => {
 
     if (bedrooms && bedrooms !== 'All') {
       if (bedrooms === '5+') {
-        query.bedrooms = { $gte: 5 };
+        query.$or = [
+          { bedrooms: { $gte: 5 } },
+          { bedrooms: { $regex: '5|6|7|8', $options: 'i' } },
+          { 'configurations.bhk': { $regex: '5|6|7|8', $options: 'i' } },
+        ];
       } else {
-        query.bedrooms = Number(bedrooms);
+        const bhkNum = Number(bedrooms);
+        query.$or = [
+          { bedrooms: bhkNum },
+          { bedrooms: { $regex: `${bhkNum}\\s*BHK`, $options: 'i' } },
+          { 'configurations.bhk': { $regex: `${bhkNum}\\s*BHK`, $options: 'i' } },
+        ];
       }
     }
 

@@ -49,17 +49,26 @@ const propertySchema = new mongoose.Schema(
       default: '',
     },
     bedrooms: {
-      type: Number,
+      type: mongoose.Schema.Types.Mixed, // Can be Number (3) or String ("3, 4, 5 BHK")
       default: 3,
     },
     bathrooms: {
-      type: Number,
+      type: mongoose.Schema.Types.Mixed, // Can be Number (3) or String ("3 - 5 Baths")
       default: 3,
     },
     carpetArea: {
-      type: Number, // sq.ft
+      type: mongoose.Schema.Types.Mixed, // Can be Number (6450) or String ("3,500 - 6,450 sq.ft")
       required: true,
     },
+    configurations: [
+      {
+        bhk: { type: String, default: '' }, // e.g. "3 BHK", "4 BHK", "5 BHK Duplex"
+        bathrooms: { type: String, default: '' }, // e.g. "3", "4.5"
+        dimensions: { type: String, default: '' }, // e.g. "3,200 sq.ft", "45 x 60 ft"
+        carpetArea: { type: String, default: '' }, // e.g. "2,850 sq.ft"
+        price: { type: String, default: 'Price on Request' }, // e.g. "Price on Request"
+      },
+    ],
     totalArea: {
       type: Number, // sq.ft
       default: 0,

@@ -68,10 +68,14 @@ export const PropertyCard = ({ property, onBookVisit }) => {
 
           {/* Specifications Grid */}
           <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-3 gap-2 text-xs text-charcoal-600">
-            {property.bedrooms > 0 ? (
+            {property.bedrooms ? (
               <div className="flex items-center gap-1.5">
                 <Bed className="w-4 h-4 text-gold shrink-0" />
-                <span className="truncate">{property.bedrooms} BHK</span>
+                <span className="truncate">
+                  {typeof property.bedrooms === 'string' && property.bedrooms.includes('BHK')
+                    ? property.bedrooms
+                    : `${property.bedrooms} BHK`}
+                </span>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
