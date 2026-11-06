@@ -19,8 +19,10 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 export const AdminEnquiries = () => {
+  const { user: currentUser } = useAuth();
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
@@ -163,7 +165,17 @@ export const AdminEnquiries = () => {
     setEditingNotes(item.adminNotes || '');
   };
 
+  // Check if current user is Super Admin
+  const isSuperAdmin =
+    currentUser?.role === 'Super Admin' ||
+    currentUser?.isPrimaryAdmin === true ||
+    currentUser?.username?.toLowerCase() === 'admin';
+
   const exportCSV = () => {
+    if (!isSuperAdmin) {
+      alert('Access restricted: Only Super Admins can export lead and client dossiers.');
+      return;
+    }
     if (enquiries.length === 0) return;
     const headers = ['Type', 'Client Name', 'Phone', 'Email', 'Property / Subject', 'Status', 'Date Submitted'];
     const rows = enquiries.map((e) => [
@@ -250,17 +262,19 @@ export const AdminEnquiries = () => {
             </button>
           </form>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2 self-start lg:self-auto">
-            <button
-              onClick={exportCSV}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-charcoal-700 transition-colors shadow-sm"
-              title="Export filtered records to CSV"
-            >
-              <Download className="w-3.5 h-3.5 text-gold" />
-              <span>Export CSV</span>
-            </button>
-          </div>
+          {/* Quick Actions (Super Admin Only) */}
+          {isSuperAdmin && (
+            <div className="flex items-center gap-2 self-start lg:self-auto">
+              <button
+                onClick={exportCSV}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-charcoal-700 transition-colors shadow-sm"
+                title="Export filtered records to CSV (Super Admin Only)"
+              >
+                <Download className="w-3.5 h-3.5 text-gold" />
+                <span>Export CSV</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Filter Pills Row: Date Filter + Type + Status */}
