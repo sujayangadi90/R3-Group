@@ -59,7 +59,7 @@ const enquirySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['New', 'Contacted', 'In Discussion', 'Site Visit', 'Closed'],
+      enum: ['New', 'Contacted', 'In Discussion', 'Site Visit', 'Negotiation', 'Closed', 'Lost'],
       default: 'New',
     },
     assignedTo: {
