@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
     const {
       type = 'general',
       name,
-      email,
+      email = '',
       phone,
       subject,
       message,
@@ -20,12 +20,16 @@ router.post('/', async (req, res) => {
       preferredDate,
       preferredTime,
       sellDetails,
+      status = 'New',
+      temperature = 'Warm',
+      assignedTo = null,
+      assignedToName = '',
     } = req.body;
 
-    if (!name || !email || !phone) {
+    if (!name || !phone) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, and phone number are required.',
+        message: 'Name and phone number are required.',
       });
     }
 
@@ -38,7 +42,7 @@ router.post('/', async (req, res) => {
     const enquiry = new Enquiry({
       type,
       name: name.trim(),
-      email: email.trim(),
+      email: (email || '').trim(),
       phone: phone.trim(),
       subject: subject || (type === 'sell_property' ? 'Property Sale Valuation Request' : type === 'site_visit' ? 'Site Visit Booking' : 'General Enquiry'),
       message: message || '',
@@ -47,7 +51,11 @@ router.post('/', async (req, res) => {
       preferredDate: preferredDate || '',
       preferredTime: preferredTime || '',
       sellDetails: sellDetails || {},
-      status: 'New',
+      status,
+      temperature,
+      assignedTo: assignedTo || null,
+      assignedToName: assignedToName || '',
+    });
     });
 
     const savedEnquiry = await enquiry.save();

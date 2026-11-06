@@ -21,6 +21,7 @@ import {
   UserPlus,
   Flame,
   Thermometer,
+  Plus,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -29,12 +30,30 @@ export const AdminEnquiries = () => {
   const { user: currentUser } = useAuth();
   const [enquiries, setEnquiries] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
+  const [propertiesList, setPropertiesList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [temperatureFilter, setTemperatureFilter] = useState('all');
   const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Add Enquiry Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addFormLoading, setAddFormLoading] = useState(false);
+  const [addFormError, setAddFormError] = useState('');
+  const initialNewEnquiry = {
+    name: '',
+    phone: '',
+    email: '',
+    propertyId: '',
+    propertyTitle: '',
+    message: '',
+    status: 'New',
+    temperature: 'Warm',
+    assignedTo: '',
+  };
+  const [newEnquiryData, setNewEnquiryData] = useState(initialNewEnquiry);
 
   // Date Filter State - defaults to 'thisMonth' per user requirement
   const [datePreset, setDatePreset] = useState('thisMonth'); // 'all', 'today', 'yesterday', '7days', 'thisMonth', 'custom'
@@ -79,19 +98,25 @@ export const AdminEnquiries = () => {
     return { startDate: '', endDate: '' };
   };
 
-  // Fetch users for assignment dropdown
+  // Fetch users & properties for assignment and selection
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchAuxData = async () => {
       try {
-        const res = await api.getUsers();
-        if (res.success && res.data) {
-          setAdminUsers(res.data);
+        const [usersRes, propsRes] = await Promise.all([
+          api.getUsers(),
+          api.getProperties({ limit: 100 }),
+        ]);
+        if (usersRes.success && usersRes.data) {
+          setAdminUsers(usersRes.data);
+        }
+        if (propsRes.success && propsRes.data) {
+          setPropertiesList(propsRes.data);
         }
       } catch (err) {
-        console.error('Failed to load users for sales assignment:', err);
+        console.error('Failed to load auxiliary admin data:', err);
       }
     };
-    fetchUsers();
+    fetchAuxData();
   }, []);
 
   const fetchEnquiries = async () => {
@@ -199,6 +224,50 @@ export const AdminEnquiries = () => {
       console.error('Failed to update temperature:', err);
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleCreateEnquiry = async (e) => {
+    e.preventDefault();
+    setAddFormLoading(true);
+    setAddFormError('');
+
+    if (!newEnquiryData.name.trim() || !newEnquiryData.phone.trim()) {
+      setAddFormError('Client name and phone number are required.');
+      setAddFormLoading(false);
+      return;
+    }
+
+    const selectedProp = propertiesList.find((p) => p._id === newEnquiryData.propertyId);
+    const assignedUser = adminUsers.find((u) => u._id === newEnquiryData.assignedTo);
+
+    const payload = {
+      type: 'general',
+      name: newEnquiryData.name.trim(),
+      phone: newEnquiryData.phone.trim(),
+      email: (newEnquiryData.email || '').trim(),
+      propertyId: newEnquiryData.propertyId || null,
+      propertyTitle: selectedProp ? selectedProp.title : (newEnquiryData.propertyTitle || ''),
+      message: newEnquiryData.message || '',
+      status: newEnquiryData.status || 'New',
+      temperature: newEnquiryData.temperature || 'Warm',
+      assignedTo: newEnquiryData.assignedTo || null,
+      assignedToName: assignedUser ? (assignedUser.name || `@${assignedUser.username}`) : '',
+    };
+
+    try {
+      const res = await api.submitEnquiry(payload);
+      if (res.success && res.data) {
+        setIsAddModalOpen(false);
+        setNewEnquiryData(initialNewEnquiry);
+        fetchEnquiries();
+      } else {
+        setAddFormError(res.message || 'Failed to create enquiry record.');
+      }
+    } catch (err) {
+      setAddFormError('Error creating enquiry. Check network.');
+    } finally {
+      setAddFormLoading(false);
     }
   };
 
@@ -377,9 +446,22 @@ export const AdminEnquiries = () => {
             </button>
           </form>
 
-          {/* Quick Actions (Super Admin Only) */}
-          {isSuperAdmin && (
-            <div className="flex items-center gap-2 self-start lg:self-auto">
+          {/* Quick Actions (Add Enquiry + Super Admin Export) */}
+          <div className="flex items-center gap-2 self-start lg:self-auto">
+            <button
+              onClick={() => {
+                setNewEnquiryData(initialNewEnquiry);
+                setAddFormError('');
+                setIsAddModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gold hover:bg-gold-dark text-white text-xs font-bold transition-all shadow-sm"
+              title="Manually log new client enquiry"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Enquiry</span>
+            </button>
+
+            {isSuperAdmin && (
               <button
                 onClick={exportCSV}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-charcoal-700 transition-colors shadow-sm"
@@ -388,8 +470,8 @@ export const AdminEnquiries = () => {
                 <Download className="w-3.5 h-3.5 text-gold" />
                 <span>Export CSV</span>
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Filter Pills Row: Date Filter (Defaults to This Month) + Type + Status + Intent + Rep */}
@@ -1038,6 +1120,194 @@ export const AdminEnquiries = () => {
                 <Trash2 className="w-3.5 h-3.5" /> Delete Lead
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Enquiry Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="px-6 py-4 bg-primary text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-gold" />
+                <h3 className="font-bold text-base">Add New Client Enquiry</h3>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1 rounded-full text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateEnquiry} className="p-6 space-y-4">
+              {addFormError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{addFormError}</span>
+                </div>
+              )}
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                  Client Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Vikramaditya Singhania"
+                  value={newEnquiryData.name}
+                  onChange={(e) => setNewEnquiryData({ ...newEnquiryData, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-gold"
+                />
+              </div>
+
+              {/* Phone & Email (Optional) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+91 98201 44552"
+                    value={newEnquiryData.phone}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Email Address <span className="text-charcoal-400 font-normal lowercase">(optional)</span>
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="client@example.com"
+                    value={newEnquiryData.email}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, email: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Property Interested In (Dropdown) */}
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                  Property Interested In
+                </label>
+                <select
+                  value={newEnquiryData.propertyId}
+                  onChange={(e) => {
+                    const pid = e.target.value;
+                    const p = propertiesList.find((item) => item._id === pid);
+                    setNewEnquiryData({
+                      ...newEnquiryData,
+                      propertyId: pid,
+                      propertyTitle: p ? p.title : '',
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary cursor-pointer font-medium"
+                >
+                  <option value="">General Luxury Advisory (No specific property)</option>
+                  {propertiesList.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.title} ({p.propertyType} - {p.location})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status, Temperature & Assigned Rep */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Initial Status
+                  </label>
+                  <select
+                    value={newEnquiryData.status}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, status: e.target.value })}
+                    className="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="In Discussion">In Discussion</option>
+                    <option value="Site Visit">Site Visit</option>
+                    <option value="Negotiation">Negotiation</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Lead Intent
+                  </label>
+                  <select
+                    value={newEnquiryData.temperature}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, temperature: e.target.value })}
+                    className="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="Hot">🔥 Hot</option>
+                    <option value="Warm">⚡ Warm</option>
+                    <option value="Cold">❄️ Cold</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Assign Rep
+                  </label>
+                  <select
+                    value={newEnquiryData.assignedTo}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, assignedTo: e.target.value })}
+                    className="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="">Unassigned</option>
+                    {adminUsers.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name || `@${u.username}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                  Message / Client Request
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Record client requirements, budget range, investment horizon..."
+                  value={newEnquiryData.message}
+                  onChange={(e) => setNewEnquiryData({ ...newEnquiryData, message: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary resize-none"
+                ></textarea>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-gray-300 text-xs font-semibold text-charcoal-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addFormLoading}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gold hover:bg-gold-dark text-white text-xs font-bold shadow-md transition-colors disabled:opacity-50"
+                >
+                  {addFormLoading ? 'Saving...' : 'Add Enquiry'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
