@@ -345,64 +345,64 @@ export const AdminDashboard = () => {
         </header>
 
         {/* Content Body */}
-        <main className="p-4 sm:p-6 lg:p-8 space-y-8 flex-1">
-          {/* Key Metric Cards (shown on enquiries & properties, or compact overview on settings) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-charcoal-500 uppercase">Total Portfolio</span>
-                <Building2 className="w-4 h-4 text-gold" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-primary">
-                {stats.totalProperties}
-              </p>
-              <span className="text-[11px] text-charcoal-500 block">
-                {stats.featuredProperties} Exclusive Listings
-              </span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-charcoal-500 uppercase">Total Inquiries</span>
-                <Inbox className="w-4 h-4 text-gold" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-primary">
-                {stats.totalEnquiries}
-              </p>
-              <span className="text-[11px] text-emerald-600 font-semibold block">
-                {stats.newEnquiries} Action Required
-              </span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-charcoal-500 uppercase">Site Visits</span>
-                <Clock className="w-4 h-4 text-gold" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-primary">
-                {stats.breakdown?.siteVisits || 0}
-              </p>
-              <span className="text-[11px] text-charcoal-500 block">Private inspections</span>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-charcoal-500 uppercase">Sell Mandates</span>
-                <TrendingUp className="w-4 h-4 text-gold" />
-              </div>
-              <p className="text-2xl sm:text-3xl font-extrabold text-primary">
-                {stats.breakdown?.sellSubmissions || 0}
-              </p>
-              <span className="text-[11px] text-charcoal-500 block">Asset divestment submissions</span>
-            </div>
-          </div>
-
+        <main className="p-4 sm:p-6 lg:p-8 space-y-6 flex-1">
           {/* Active Module */}
           <div>
             {activeTab === 'enquiries' ? (
               <AdminEnquiries />
             ) : activeTab === 'properties' ? (
-              <AdminProperties />
+              <div className="space-y-6">
+                {/* Properties Portfolio Metrics */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-charcoal-500 uppercase">Total Portfolio</span>
+                      <Building2 className="w-4 h-4 text-gold" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-primary">
+                      {stats.totalProperties}
+                    </p>
+                    <span className="text-[11px] text-charcoal-500 block">
+                      {stats.featuredProperties} Exclusive Listings
+                    </span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-charcoal-500 uppercase">Featured Spire</span>
+                      <Sparkles className="w-4 h-4 text-gold" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-primary">
+                      {stats.featuredProperties}
+                    </p>
+                    <span className="text-[11px] text-charcoal-500 block">Top curated tier</span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-charcoal-500 uppercase">Site Visits Booked</span>
+                      <Clock className="w-4 h-4 text-gold" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-primary">
+                      {stats.breakdown?.siteVisits || 0}
+                    </p>
+                    <span className="text-[11px] text-charcoal-500 block">Private inspections</span>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-charcoal-500 uppercase">Sell Mandates</span>
+                      <TrendingUp className="w-4 h-4 text-gold" />
+                    </div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-primary">
+                      {stats.breakdown?.sellSubmissions || 0}
+                    </p>
+                    <span className="text-[11px] text-charcoal-500 block">Asset divestment submissions</span>
+                  </div>
+                </div>
+
+                <AdminProperties />
+              </div>
             ) : (
               <AdminSettings />
             )}

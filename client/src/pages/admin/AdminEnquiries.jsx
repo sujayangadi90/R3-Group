@@ -36,8 +36,8 @@ export const AdminEnquiries = () => {
   const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Date Filter State
-  const [datePreset, setDatePreset] = useState('all'); // 'all', 'today', 'yesterday', '7days', 'thisMonth', 'custom'
+  // Date Filter State - defaults to 'thisMonth' per user requirement
+  const [datePreset, setDatePreset] = useState('thisMonth'); // 'all', 'today', 'yesterday', '7days', 'thisMonth', 'custom'
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
@@ -342,9 +342,20 @@ export const AdminEnquiries = () => {
     }
   };
 
+  // Calculate status counts for live KPI cards
+  const statusCounts = {
+    New: enquiries.filter((e) => e.status === 'New').length,
+    Contacted: enquiries.filter((e) => e.status === 'Contacted').length,
+    'In Discussion': enquiries.filter((e) => e.status === 'In Discussion').length,
+    'Site Visit': enquiries.filter((e) => e.status === 'Site Visit').length,
+    Negotiation: enquiries.filter((e) => e.status === 'Negotiation').length,
+    Closed: enquiries.filter((e) => e.status === 'Closed').length,
+    Lost: enquiries.filter((e) => e.status === 'Lost').length,
+  };
+
   return (
     <div className="space-y-6">
-      {/* Controls Bar */}
+      {/* 1. Entire Filter Block on the Top */}
       <div className="bg-white p-5 rounded-2xl border border-[#ECECE8] shadow-sm space-y-4">
         {/* Top Row: Search + Action Buttons */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
@@ -381,10 +392,10 @@ export const AdminEnquiries = () => {
           )}
         </div>
 
-        {/* Filter Pills Row: Date Filter + Type + Status */}
+        {/* Filter Pills Row: Date Filter (Defaults to This Month) + Type + Status + Intent + Rep */}
         <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
           {/* ========================================================= */}
-          {/* DATE FILTER */}
+          {/* DATE FILTER (Default: This Month) */}
           {/* ========================================================= */}
           <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
             <Calendar className="w-3.5 h-3.5 text-gold shrink-0" />
@@ -394,11 +405,11 @@ export const AdminEnquiries = () => {
               onChange={(e) => setDatePreset(e.target.value)}
               className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
             >
+              <option value="thisMonth">This Month (Default)</option>
               <option value="all">All Dates</option>
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
               <option value="7days">Last 7 Days</option>
-              <option value="thisMonth">This Month</option>
               <option value="custom">Custom Range...</option>
             </select>
           </div>
@@ -421,18 +432,6 @@ export const AdminEnquiries = () => {
                 className="bg-white px-2 py-0.5 rounded border border-gray-300 text-xs text-primary focus:outline-none"
               />
             </div>
-          )}
-
-          {/* Reset Date Pill if active */}
-          {datePreset !== 'all' && (
-            <button
-              onClick={handleResetDate}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg transition-colors"
-              title="Clear date filter"
-            >
-              <X className="w-3 h-3" />
-              <span>Clear Date</span>
-            </button>
           )}
 
           {/* Type Filter */}
@@ -504,14 +503,16 @@ export const AdminEnquiries = () => {
           </div>
 
           {/* Reset All Filters button */}
-          {(typeFilter !== 'all' || statusFilter !== 'all' || temperatureFilter !== 'all' || assignedFilter !== 'all' || datePreset !== 'all' || searchTerm !== '') && (
+          {(typeFilter !== 'all' || statusFilter !== 'all' || temperatureFilter !== 'all' || assignedFilter !== 'all' || datePreset !== 'thisMonth' || searchTerm !== '') && (
             <button
               onClick={() => {
                 setTypeFilter('all');
                 setStatusFilter('all');
                 setTemperatureFilter('all');
                 setAssignedFilter('all');
-                handleResetDate();
+                setDatePreset('thisMonth');
+                setCustomStartDate('');
+                setCustomEndDate('');
                 setSearchTerm('');
               }}
               className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-charcoal-500 hover:text-primary transition-colors"
@@ -520,6 +521,128 @@ export const AdminEnquiries = () => {
               <span>Reset All</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* 2. Status Metric Cards (Showing enquiries count in each status) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        {/* New */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'New' ? 'all' : 'New')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'New'
+              ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300'
+              : 'bg-white border-[#ECECE8] hover:border-emerald-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-emerald-700 uppercase">New</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts.New}</p>
+          <span className="text-[10px] text-charcoal-500">Uncontacted Leads</span>
+        </div>
+
+        {/* Contacted */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'Contacted' ? 'all' : 'Contacted')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'Contacted'
+              ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300'
+              : 'bg-white border-[#ECECE8] hover:border-blue-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-blue-700 uppercase">Contacted</span>
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts.Contacted}</p>
+          <span className="text-[10px] text-charcoal-500">First Outreach</span>
+        </div>
+
+        {/* In Discussion */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'In Discussion' ? 'all' : 'In Discussion')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'In Discussion'
+              ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300'
+              : 'bg-white border-[#ECECE8] hover:border-amber-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-700 uppercase">Discussion</span>
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts['In Discussion']}</p>
+          <span className="text-[10px] text-charcoal-500">Active Advisory</span>
+        </div>
+
+        {/* Site Visit */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'Site Visit' ? 'all' : 'Site Visit')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'Site Visit'
+              ? 'bg-purple-50 border-purple-400 ring-2 ring-purple-300'
+              : 'bg-white border-[#ECECE8] hover:border-purple-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-purple-700 uppercase">Site Visit</span>
+            <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts['Site Visit']}</p>
+          <span className="text-[10px] text-charcoal-500">Inspections</span>
+        </div>
+
+        {/* Negotiation */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'Negotiation' ? 'all' : 'Negotiation')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'Negotiation'
+              ? 'bg-orange-50 border-orange-400 ring-2 ring-orange-300'
+              : 'bg-white border-[#ECECE8] hover:border-orange-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-orange-700 uppercase">Negotiation</span>
+            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts.Negotiation}</p>
+          <span className="text-[10px] text-charcoal-500">Deal Structuring</span>
+        </div>
+
+        {/* Closed */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'Closed' ? 'all' : 'Closed')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'Closed'
+              ? 'bg-emerald-100 border-emerald-500 ring-2 ring-emerald-400'
+              : 'bg-white border-[#ECECE8] hover:border-emerald-400 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-emerald-800 uppercase">Closed</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts.Closed}</p>
+          <span className="text-[10px] text-charcoal-500">Transacted</span>
+        </div>
+
+        {/* Lost */}
+        <div
+          onClick={() => setStatusFilter(statusFilter === 'Lost' ? 'all' : 'Lost')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            statusFilter === 'Lost'
+              ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-300'
+              : 'bg-white border-[#ECECE8] hover:border-rose-300 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-rose-700 uppercase">Lost</span>
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+          </div>
+          <p className="text-2xl font-extrabold text-primary mt-1">{statusCounts.Lost}</p>
+          <span className="text-[10px] text-charcoal-500">Dropped Leads</span>
         </div>
       </div>
 
