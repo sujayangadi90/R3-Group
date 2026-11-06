@@ -242,7 +242,7 @@ export const HomePage = () => {
             <div className="p-4 rounded-xl bg-surface-warm">
               <span className="block text-2xl md:text-3xl font-extrabold text-gold">100%</span>
               <span className="text-xs uppercase tracking-wider text-charcoal-500 font-semibold mt-1 block">
-                MahaRERA Compliant
+                RERA Compliant
               </span>
             </div>
           </div>

@@ -155,14 +155,9 @@ router.post('/', verifyAdmin, async (req, res) => {
       propertyData.slug = uniqueSlug;
     }
 
-    // Ensure priceDisplay if not given
-    if (!propertyData.priceDisplay && propertyData.price) {
-      const priceNum = Number(propertyData.price);
-      if (priceNum >= 10000000) {
-        propertyData.priceDisplay = `₹ ${(priceNum / 10000000).toFixed(2)} Cr`;
-      } else {
-        propertyData.priceDisplay = `₹ ${(priceNum / 100000).toFixed(2)} Lakhs`;
-      }
+    // Ensure priceDisplay defaults to Price on Request
+    if (!propertyData.priceDisplay) {
+      propertyData.priceDisplay = 'Price on Request';
     }
 
     const newProperty = new Property(propertyData);

@@ -119,9 +119,7 @@ export const PropertiesPage = () => {
                 onChange={(e) => setSort(e.target.value)}
                 className="px-3 py-2 rounded-xl border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none focus:border-primary"
               >
-                <option value="newest">Newest First</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
+                <option value="newest">Newest Listed</option>
                 <option value="area_desc">Largest Area</option>
               </select>
             </div>

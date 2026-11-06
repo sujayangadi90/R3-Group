@@ -49,7 +49,7 @@ export const AdminProperties = () => {
     description: '',
     propertyType: 'Apartment',
     price: '',
-    priceDisplay: '',
+    priceDisplay: 'Price on Request',
     location: '',
     city: 'Mumbai',
     address: '',
@@ -413,8 +413,8 @@ export const AdminProperties = () => {
 
                     {/* Price */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="font-bold text-gold text-sm font-sans">
-                        {item.priceDisplay}
+                      <span className="font-bold text-gold text-xs font-sans block">
+                        Price on Request
                       </span>
                     </td>
 

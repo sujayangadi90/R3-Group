@@ -145,7 +145,7 @@ export const PropertyDetailPage = () => {
               </span>
               {property.reraId && (
                 <span className="px-2.5 py-1 rounded bg-gray-100 text-charcoal-600 text-[11px] font-semibold tracking-wider">
-                  MahaRERA: {property.reraId}
+                  RERA: {property.reraId}
                 </span>
               )}
             </div>
@@ -159,11 +159,11 @@ export const PropertyDetailPage = () => {
           </div>
 
           <div className="text-left lg:text-right">
-            <span className="text-xs uppercase font-bold text-charcoal-500 block">Offered At</span>
-            <span className="text-3xl lg:text-4xl font-extrabold text-gold block font-sans">
-              {property.priceDisplay}
+            <span className="text-xs uppercase font-bold text-charcoal-500 block">Pricing</span>
+            <span className="text-2xl lg:text-3xl font-extrabold text-gold block font-sans">
+              Price on Request
             </span>
-            <span className="text-[11px] text-charcoal-500">*Exclusive of statutory stamp duty & registration</span>
+            <span className="text-[11px] text-charcoal-500">*Confidential advisory upon verified inquiry</span>
           </div>
         </div>
 

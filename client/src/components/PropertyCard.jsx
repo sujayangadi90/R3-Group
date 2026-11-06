@@ -48,8 +48,8 @@ export const PropertyCard = ({ property, onBookVisit }) => {
         <div>
           {/* Price */}
           <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xl md:text-2xl font-bold font-sans text-gold">
-              {property.priceDisplay || `₹ ${(property.price / 10000000).toFixed(2)} Cr`}
+            <span className="text-base md:text-lg font-bold font-sans text-gold tracking-tight">
+              Price on Request
             </span>
           </div>
 

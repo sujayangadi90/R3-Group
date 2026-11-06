@@ -36,7 +36,7 @@ export const ContactPage = () => {
     },
     {
       q: 'Are all properties listed with R3 Group RERA certified?',
-      a: 'Yes. Every project and secondary asset featured in our portfolio is thoroughly audited for valid MahaRERA registration, Commencement Certificates (CC), Occupancy Certificates (OC), and unencumbered title deeds.',
+      a: 'Yes. Every project and secondary asset featured in our portfolio is thoroughly audited for valid RERA registration, Commencement Certificates (CC), Occupancy Certificates (OC), and unencumbered title deeds.',
     },
     {
       q: 'Do you manage off-market and private pocket listings?',

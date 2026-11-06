@@ -81,7 +81,7 @@ export const SiteVisitModal = ({ property, isOpen, onClose }) => {
             <span className="font-semibold text-primary">{property.title}</span>
             <span className="text-charcoal-500 ml-1">({property.location})</span>
           </div>
-          <span className="font-bold text-gold shrink-0">{property.priceDisplay}</span>
+          <span className="font-bold text-gold shrink-0">Price on Request</span>
         </div>
 
         {/* Content */}

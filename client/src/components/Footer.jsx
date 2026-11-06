@@ -129,7 +129,7 @@ export const Footer = () => {
             <Link to="/about" className="hover:text-white transition-colors">
               Terms of Advisory
             </Link>
-            <span className="text-gray-500">MahaRERA: A51900018442</span>
+            <span className="text-gray-500">RERA: A51900018442</span>
             <Link to="/admin" className="text-gold hover:underline font-semibold flex items-center gap-1">
               Admin Portal <ArrowUpRight className="w-3 h-3" />
             </Link>
