@@ -272,4 +272,44 @@ export const api = {
     });
     return res.json();
   },
+
+  // Sell Property Requests (Independent from Enquiries / Leads)
+  async submitSellRequest(data) {
+    const res = await fetch(`${API_BASE}/sell-requests`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async getSellRequests(params = {}) {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, val);
+      }
+    });
+    const res = await fetch(`${API_BASE}/sell-requests?${query.toString()}`, {
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
+
+  async updateSellRequest(id, data) {
+    const res = await fetch(`${API_BASE}/sell-requests/${id}`, {
+      method: 'PATCH',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async deleteSellRequest(id) {
+    const res = await fetch(`${API_BASE}/sell-requests/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
 };

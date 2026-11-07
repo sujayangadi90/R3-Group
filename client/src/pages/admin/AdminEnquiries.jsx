@@ -564,8 +564,8 @@ export const AdminEnquiries = () => {
             >
               <option value="all">All Enquiries</option>
               <option value="site_visit">Site Visits</option>
-              <option value="sell_property">Sell Mandates</option>
               <option value="contact">Contact Requests</option>
+              <option value="general">General Advisory</option>
             </select>
           </div>
 

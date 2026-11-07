@@ -14,6 +14,7 @@ import uploadRoutes from './routes/upload.js';
 import userRoutes from './routes/users.js';
 import locationRoutes from './routes/locations.js';
 import leadSourceRoutes from './routes/leadSources.js';
+import sellRequestRoutes from './routes/sellRequests.js';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/lead-sources', leadSourceRoutes);
+app.use('/api/sell-requests', sellRequestRoutes);
 
 // Serve Frontend in Production if built
 const clientDistPath = path.resolve(__dirname, '../../client/dist');

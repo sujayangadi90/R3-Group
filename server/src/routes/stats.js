@@ -1,6 +1,7 @@
 import express from 'express';
 import Property from '../models/Property.js';
 import Enquiry from '../models/Enquiry.js';
+import SellRequest from '../models/SellRequest.js';
 import { verifyAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -27,7 +28,7 @@ router.get('/dashboard', verifyAdmin, async (req, res) => {
       Enquiry.countDocuments(),
       Enquiry.countDocuments({ status: 'New' }),
       Enquiry.countDocuments({ type: 'site_visit' }),
-      Enquiry.countDocuments({ type: 'sell_property' }),
+      SellRequest.countDocuments(),
       Enquiry.countDocuments({ type: 'contact' }),
       Enquiry.find().sort({ createdAt: -1 }).limit(5).populate('propertyId', 'title slug'),
       Property.find().sort({ createdAt: -1 }).limit(5),

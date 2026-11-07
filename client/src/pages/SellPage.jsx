@@ -36,22 +36,17 @@ export const SellPage = () => {
     setError('');
 
     try {
-      const res = await api.submitEnquiry({
-        type: 'sell_property',
+      const res = await api.submitSellRequest({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        subject: `Property Sale Mandate: ${formData.propertyTitle || formData.propertyType}`,
-        message: `Owner submitted asset for sale: ${formData.propertyTitle} in ${formData.location}. Expected Price: ${formData.expectedPrice}. Notes: ${formData.additionalNotes}`,
-        sellDetails: {
-          propertyTitle: formData.propertyTitle,
-          propertyType: formData.propertyType,
-          location: formData.location,
-          expectedPrice: formData.expectedPrice,
-          carpetArea: formData.carpetArea,
-          bedrooms: formData.bedrooms,
-          additionalNotes: formData.additionalNotes,
-        },
+        propertyTitle: formData.propertyTitle,
+        propertyType: formData.propertyType,
+        location: formData.location,
+        expectedPrice: formData.expectedPrice,
+        carpetArea: formData.carpetArea,
+        bedrooms: formData.bedrooms,
+        additionalNotes: formData.additionalNotes,
       });
 
       if (res.success) {

@@ -1,29 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  Filter,
   Eye,
   Trash2,
   Calendar,
-  Clock,
   Phone,
   Mail,
   Building2,
-  CheckCircle,
-  FileText,
-  DollarSign,
   X,
   Save,
   Download,
-  AlertCircle,
   RotateCcw,
-  UserCheck,
-  Flame,
   ChevronLeft,
   ChevronRight,
   MapPin,
-  Maximize2,
-  Bed,
+  Clock,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -31,11 +22,7 @@ import { useAuth } from '../../context/AuthContext';
 export const AdminSellRequests = () => {
   const { user: currentUser } = useAuth();
   const [requests, setRequests] = useState([]);
-  const [adminUsers, setAdminUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [temperatureFilter, setTemperatureFilter] = useState('all');
-  const [assignedFilter, setAssignedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Pagination state (20 records per page)
@@ -51,7 +38,7 @@ export const AdminSellRequests = () => {
   // Selected sell request for inspection drawer
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [editingNotes, setEditingNotes] = useState('');
-  const [updatingId, setUpdatingId] = useState(null);
+  const [savingNotes, setSavingNotes] = useState(false);
 
   // Compute start & end dates based on preset
   const getDateRange = () => {
@@ -85,33 +72,14 @@ export const AdminSellRequests = () => {
     return { startDate: '', endDate: '' };
   };
 
-  // Fetch admin users for lead assignment
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const usersRes = await api.getUsers();
-        if (usersRes.success && usersRes.data) {
-          setAdminUsers(usersRes.data);
-        }
-      } catch (err) {
-        console.error('Failed to load admin users:', err);
-      }
-    };
-    fetchUsers();
-  }, []);
-
   const fetchSellRequests = async (page = currentPage) => {
     setLoading(true);
     try {
       const { startDate, endDate } = getDateRange();
-      const res = await api.getEnquiries({
-        type: 'sell_property', // Strictly filter for sell property submissions
-        status: statusFilter,
-        temperature: temperatureFilter,
+      const res = await api.getSellRequests({
         search: searchTerm,
         startDate,
         endDate,
-        assignedTo: assignedFilter,
         page,
         limit: 20,
       });
@@ -131,7 +99,7 @@ export const AdminSellRequests = () => {
   useEffect(() => {
     setCurrentPage(1);
     fetchSellRequests(1);
-  }, [statusFilter, temperatureFilter, assignedFilter, datePreset, customStartDate, customEndDate]);
+  }, [datePreset, customStartDate, customEndDate]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -146,80 +114,11 @@ export const AdminSellRequests = () => {
     fetchSellRequests(1);
   };
 
-  const handleAssignSales = async (id, assignedUserId) => {
-    const assignedUser = adminUsers.find((u) => u._id === assignedUserId);
-    const assignedName = assignedUser ? (assignedUser.name || `@${assignedUser.username}`) : '';
-    setUpdatingId(id);
-    try {
-      const res = await api.updateEnquiry(id, {
-        assignedTo: assignedUserId || null,
-        assignedToName: assignedName,
-      });
-      if (res.success) {
-        setRequests((prev) =>
-          prev.map((item) =>
-            item._id === id
-              ? { ...item, assignedTo: assignedUserId || null, assignedToName: assignedName }
-              : item
-          )
-        );
-        if (selectedRequest && selectedRequest._id === id) {
-          setSelectedRequest({
-            ...selectedRequest,
-            assignedTo: assignedUserId || null,
-            assignedToName: assignedName,
-          });
-        }
-      }
-    } catch (err) {
-      alert('Failed to reassign request.');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleStatusChange = async (id, newStatus) => {
-    setUpdatingId(id);
-    try {
-      const res = await api.updateEnquiry(id, { status: newStatus });
-      if (res.success) {
-        setRequests((prev) =>
-          prev.map((item) => (item._id === id ? { ...item, status: newStatus } : item))
-        );
-        if (selectedRequest && selectedRequest._id === id) {
-          setSelectedRequest({ ...selectedRequest, status: newStatus });
-        }
-      }
-    } catch (err) {
-      console.error('Failed to update status:', err);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleTemperatureChange = async (id, newTemp) => {
-    setUpdatingId(id);
-    try {
-      const res = await api.updateEnquiry(id, { temperature: newTemp });
-      if (res.success) {
-        setRequests((prev) =>
-          prev.map((item) => (item._id === id ? { ...item, temperature: newTemp } : item))
-        );
-        if (selectedRequest && selectedRequest._id === id) {
-          setSelectedRequest({ ...selectedRequest, temperature: newTemp });
-        }
-      }
-    } catch (err) {
-      console.error('Failed to update temperature:', err);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   const handleSaveNotes = async () => {
     if (!selectedRequest) return;
+    setSavingNotes(true);
     try {
-      const res = await api.updateEnquiry(selectedRequest._id, { adminNotes: editingNotes });
+      const res = await api.updateSellRequest(selectedRequest._id, { adminNotes: editingNotes });
       if (res.success) {
         setSelectedRequest({ ...selectedRequest, adminNotes: editingNotes });
         setRequests((prev) =>
@@ -231,13 +130,15 @@ export const AdminSellRequests = () => {
       }
     } catch (err) {
       alert('Failed to save internal notes.');
+    } finally {
+      setSavingNotes(false);
     }
   };
 
   const handleDeleteRequest = async (id) => {
     if (!window.confirm('Are you sure you want to permanently delete this sell property request?')) return;
     try {
-      const res = await api.deleteEnquiry(id);
+      const res = await api.deleteSellRequest(id);
       if (res.success) {
         setRequests((prev) => prev.filter((item) => item._id !== id));
         if (selectedRequest && selectedRequest._id === id) {
@@ -261,7 +162,7 @@ export const AdminSellRequests = () => {
 
   const exportCSV = () => {
     if (!isSuperAdmin) {
-      alert('Access restricted: Only Super Admins can export sell mandates.');
+      alert('Access restricted: Only Super Admins can export sell requests.');
       return;
     }
     if (requests.length === 0) return;
@@ -276,9 +177,8 @@ export const AdminSellRequests = () => {
       'Carpet Area',
       'Bedrooms',
       'Expected Price',
-      'Status',
-      'Assigned Rep',
-      'Special Features & Notes',
+      'Special Features & Title Remarks',
+      'Internal Notes',
     ];
 
     const rows = requests.map((e) => [
@@ -286,15 +186,14 @@ export const AdminSellRequests = () => {
       `"${e.name}"`,
       `"${e.phone}"`,
       `"${e.email}"`,
-      `"${e.sellDetails?.propertyTitle || e.propertyTitle || ''}"`,
-      `"${e.sellDetails?.propertyType || ''}"`,
-      `"${e.sellDetails?.location || ''}"`,
-      `"${e.sellDetails?.carpetArea || ''}"`,
-      `"${e.sellDetails?.bedrooms || ''}"`,
-      `"${e.sellDetails?.expectedPrice || ''}"`,
-      e.status,
-      `"${e.assignedToName || 'Unassigned'}"`,
-      `"${(e.sellDetails?.additionalNotes || e.message || '').replace(/"/g, '""')}"`,
+      `"${e.propertyTitle || ''}"`,
+      `"${e.propertyType || ''}"`,
+      `"${e.location || ''}"`,
+      `"${e.carpetArea || ''}"`,
+      `"${e.bedrooms || ''}"`,
+      `"${e.expectedPrice || ''}"`,
+      `"${(e.additionalNotes || '').replace(/"/g, '""')}"`,
+      `"${(e.adminNotes || '').replace(/"/g, '""')}"`,
     ]);
 
     const csvContent =
@@ -309,40 +208,6 @@ export const AdminSellRequests = () => {
     document.body.removeChild(link);
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'New':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Contacted':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'In Discussion':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Site Visit':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-      case 'Negotiation':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'Closed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'Lost':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
-      default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
-
-  const getTemperatureBadge = (temp) => {
-    switch (temp) {
-      case 'Hot':
-        return { pill: 'bg-red-50 text-red-600 border-red-200 font-bold', icon: '🔥 Hot' };
-      case 'Warm':
-        return { pill: 'bg-amber-50 text-amber-600 border-amber-200 font-semibold', icon: '⚡ Warm' };
-      case 'Cold':
-        return { pill: 'bg-sky-50 text-sky-600 border-sky-200 font-normal', icon: '❄️ Cold' };
-      default:
-        return { pill: 'bg-gray-50 text-gray-500 border-gray-200', icon: '—' };
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Top Search & Filter Bar */}
@@ -353,7 +218,7 @@ export const AdminSellRequests = () => {
             <Search className="w-4 h-4 text-charcoal-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by owner name, phone, building, location, or notes..."
+              placeholder="Search by owner name, phone, building, location, or remarks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-24 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-gold"
@@ -379,7 +244,7 @@ export const AdminSellRequests = () => {
           </div>
         </div>
 
-        {/* Filter Pills Row */}
+        {/* Filter Pills Row: Date Filter Only */}
         <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
           {/* Date Filter */}
           <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
@@ -419,68 +284,10 @@ export const AdminSellRequests = () => {
             </div>
           )}
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
-            <span className="text-xs font-semibold text-charcoal-700">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Statuses</option>
-              <option value="New">New</option>
-              <option value="Contacted">Contacted</option>
-              <option value="In Discussion">In Discussion</option>
-              <option value="Site Visit">Site Visit</option>
-              <option value="Negotiation">Negotiation</option>
-              <option value="Closed">Closed</option>
-              <option value="Lost">Lost</option>
-            </select>
-          </div>
-
-          {/* Lead Temp */}
-          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
-            <span className="text-xs font-semibold text-charcoal-700">Intent:</span>
-            <select
-              value={temperatureFilter}
-              onChange={(e) => setTemperatureFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
-            >
-              <option value="all">All (Cold/Warm/Hot)</option>
-              <option value="Hot">🔥 Hot</option>
-              <option value="Warm">⚡ Warm</option>
-              <option value="Cold">❄️ Cold</option>
-            </select>
-          </div>
-
-          {/* Assigned Rep */}
-          <div className="flex items-center gap-1.5 bg-surface-warm px-3 py-1.5 rounded-xl border border-gray-200">
-            <span className="text-xs font-semibold text-charcoal-700">Assigned Rep:</span>
-            <select
-              value={assignedFilter}
-              onChange={(e) => setAssignedFilter(e.target.value)}
-              className="bg-transparent text-xs font-bold text-primary focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Sales Reps</option>
-              {adminUsers.map((u) => (
-                <option key={u._id} value={u._id}>
-                  {u.name || `@${u.username}`}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Reset Filters */}
-          {(statusFilter !== 'all' ||
-            temperatureFilter !== 'all' ||
-            assignedFilter !== 'all' ||
-            datePreset !== 'thisMonth' ||
-            searchTerm !== '') && (
+          {(datePreset !== 'thisMonth' || searchTerm !== '') && (
             <button
               onClick={() => {
-                setStatusFilter('all');
-                setTemperatureFilter('all');
-                setAssignedFilter('all');
                 setDatePreset('thisMonth');
                 setCustomStartDate('');
                 setCustomEndDate('');
@@ -507,7 +314,7 @@ export const AdminSellRequests = () => {
             </span>
           </div>
           <span className="text-xs text-charcoal-500 hidden sm:inline">
-            Click row to view full asset specification dossier
+            Click row to view full property particulars & owner details
           </span>
         </div>
 
@@ -520,7 +327,7 @@ export const AdminSellRequests = () => {
             <Building2 className="w-10 h-10 text-gold mx-auto opacity-50" />
             <h4 className="font-bold text-primary text-sm">No Sell Property Requests Found</h4>
             <p className="text-xs text-charcoal-500 max-w-sm mx-auto">
-              No owner divestment submissions match the selected date or filter criteria.
+              No owner property submissions match the selected date or search criteria.
             </p>
           </div>
         ) : (
@@ -530,158 +337,99 @@ export const AdminSellRequests = () => {
                 <tr className="bg-surface-warm border-b border-gray-100 text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
                   <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Owner / Contact</th>
-                  <th className="py-3 px-4">Asset Details</th>
+                  <th className="py-3 px-4">Property Particulars</th>
                   <th className="py-3 px-4">Area & Config</th>
-                  <th className="py-3 px-4">Expected Price</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Intent</th>
-                  <th className="py-3 px-4">Assigned Rep</th>
+                  <th className="py-3 px-4">Expected Target Price</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-xs">
-                {requests.map((item) => {
-                  const details = item.sellDetails || {};
-                  return (
-                    <tr
-                      key={item._id}
-                      onClick={() => openDrawer(item)}
-                      className="hover:bg-surface/60 transition-colors cursor-pointer"
-                    >
-                      {/* Date */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-charcoal-500">
-                        <div className="font-semibold text-primary">
-                          {new Date(item.createdAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </div>
-                        <div className="text-[10px] text-charcoal-400">
-                          {new Date(item.createdAt).toLocaleTimeString('en-IN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </div>
-                      </td>
+                {requests.map((item) => (
+                  <tr
+                    key={item._id}
+                    onClick={() => openDrawer(item)}
+                    className="hover:bg-surface/60 transition-colors cursor-pointer"
+                  >
+                    {/* Date */}
+                    <td className="py-3.5 px-4 whitespace-nowrap text-charcoal-500">
+                      <div className="font-semibold text-primary">
+                        {new Date(item.createdAt).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      <div className="text-[10px] text-charcoal-400">
+                        {new Date(item.createdAt).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </td>
 
-                      {/* Owner Details */}
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-primary">{item.name}</div>
-                        <div className="text-[11px] text-charcoal-500">{item.phone}</div>
-                        <div className="text-[11px] text-charcoal-500 truncate max-w-[170px]">
-                          {item.email}
-                        </div>
-                      </td>
+                    {/* Owner Details */}
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-primary">{item.name}</div>
+                      <div className="text-[11px] text-charcoal-500">{item.phone}</div>
+                      <div className="text-[11px] text-charcoal-500 truncate max-w-[180px]">
+                        {item.email}
+                      </div>
+                    </td>
 
-                      {/* Property Details */}
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-primary block truncate max-w-[200px]">
-                          {details.propertyTitle || item.propertyTitle || 'Asset Sale'}
+                    {/* Property Particulars */}
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-primary block truncate max-w-[260px]">
+                        {item.propertyTitle}
+                      </span>
+                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-charcoal-500">
+                        <span className="px-2 py-0.5 rounded bg-gold-subtle text-gold font-bold text-[10px]">
+                          {item.propertyType || 'Penthouse'}
                         </span>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-charcoal-500">
-                          <span className="px-1.5 py-0.2 rounded bg-gold-subtle text-gold font-bold text-[10px]">
-                            {details.propertyType || 'Residential'}
-                          </span>
-                          <span className="truncate max-w-[140px] flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-gold shrink-0" />
-                            {details.location || 'Mumbai'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Area & Config */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="font-semibold text-primary">
-                          {details.carpetArea || '—'}
-                        </div>
-                        <div className="text-[11px] text-charcoal-500">
-                          {details.bedrooms || '—'}
-                        </div>
-                      </td>
-
-                      {/* Expected Target Price */}
-                      <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="font-extrabold text-gold text-sm block">
-                          {details.expectedPrice || 'On Request'}
+                        <span className="truncate max-w-[180px] flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-gold shrink-0" />
+                          {item.location}
                         </span>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Status */}
-                      <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <select
-                          value={item.status}
-                          onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                          disabled={updatingId === item._id}
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-full border focus:outline-none cursor-pointer ${getStatusBadge(
-                            item.status
-                          )}`}
+                    {/* Area & Config */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="font-semibold text-primary">
+                        {item.carpetArea}
+                      </div>
+                      <div className="text-[11px] text-charcoal-500 font-medium">
+                        {item.bedrooms || '—'}
+                      </div>
+                    </td>
+
+                    {/* Expected Target Price */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span className="font-extrabold text-gold text-sm block">
+                        {item.expectedPrice}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openDrawer(item)}
+                          className="p-1.5 rounded-lg border border-gray-200 hover:bg-white text-charcoal-600 hover:text-primary transition-colors cursor-pointer"
+                          title="View Full Particulars"
                         >
-                          <option value="New">New</option>
-                          <option value="Contacted">Contacted</option>
-                          <option value="In Discussion">In Discussion</option>
-                          <option value="Site Visit">Site Visit</option>
-                          <option value="Negotiation">Negotiation</option>
-                          <option value="Closed">Closed</option>
-                          <option value="Lost">Lost</option>
-                        </select>
-                      </td>
-
-                      {/* Intent */}
-                      <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <select
-                          value={item.temperature || 'Warm'}
-                          onChange={(e) => handleTemperatureChange(item._id, e.target.value)}
-                          disabled={updatingId === item._id}
-                          className={`text-xs px-2.5 py-1 rounded-full border focus:outline-none cursor-pointer ${
-                            getTemperatureBadge(item.temperature || 'Warm').pill
-                          }`}
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRequest(item._id)}
+                          className="p-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
+                          title="Delete Request"
                         >
-                          <option value="Hot">🔥 Hot</option>
-                          <option value="Warm">⚡ Warm</option>
-                          <option value="Cold">❄️ Cold</option>
-                        </select>
-                      </td>
-
-                      {/* Assigned Rep */}
-                      <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <select
-                          value={item.assignedTo || ''}
-                          onChange={(e) => handleAssignSales(item._id, e.target.value)}
-                          disabled={updatingId === item._id}
-                          className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-primary focus:outline-none cursor-pointer max-w-[140px] truncate"
-                        >
-                          <option value="">Unassigned</option>
-                          {adminUsers.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name || `@${u.username}`}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => openDrawer(item)}
-                            className="p-1.5 rounded-lg border border-gray-200 hover:bg-white text-charcoal-600 hover:text-primary transition-colors cursor-pointer"
-                            title="Inspect Particulars"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRequest(item._id)}
-                            className="p-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
-                            title="Delete Request"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -724,10 +472,10 @@ export const AdminSellRequests = () => {
             <div className="p-6 bg-primary text-white flex items-center justify-between sticky top-0 z-10 border-b border-primary/50">
               <div>
                 <span className="text-[10px] font-bold text-gold uppercase tracking-widest block">
-                  Confidential Sell Property Mandate
+                  Property Submission Request
                 </span>
                 <h3 className="text-lg font-bold mt-0.5">
-                  {selectedRequest.sellDetails?.propertyTitle || selectedRequest.name}
+                  {selectedRequest.propertyTitle}
                 </h3>
               </div>
               <button
@@ -740,63 +488,16 @@ export const AdminSellRequests = () => {
 
             {/* Drawer Body */}
             <div className="p-6 space-y-6 flex-1">
-              {/* Status and Intent Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-surface-warm border border-gray-200">
-                <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
-                    Status
-                  </span>
-                  <select
-                    value={selectedRequest.status}
-                    onChange={(e) => handleStatusChange(selectedRequest._id, e.target.value)}
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${getStatusBadge(
-                      selectedRequest.status
-                    )}`}
-                  >
-                    <option value="New">New</option>
-                    <option value="Contacted">Contacted</option>
-                    <option value="In Discussion">In Discussion</option>
-                    <option value="Site Visit">Site Visit</option>
-                    <option value="Negotiation">Negotiation</option>
-                    <option value="Closed">Closed</option>
-                    <option value="Lost">Lost</option>
-                  </select>
-                </div>
-
-                <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
-                    Intent
-                  </span>
-                  <select
-                    value={selectedRequest.temperature || 'Warm'}
-                    onChange={(e) => handleTemperatureChange(selectedRequest._id, e.target.value)}
-                    className={`text-xs px-2.5 py-1 rounded-full border ${
-                      getTemperatureBadge(selectedRequest.temperature || 'Warm').pill
-                    }`}
-                  >
-                    <option value="Hot">🔥 Hot</option>
-                    <option value="Warm">⚡ Warm</option>
-                    <option value="Cold">❄️ Cold</option>
-                  </select>
-                </div>
-
-                <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
-                    Assigned Rep
-                  </span>
-                  <select
-                    value={selectedRequest.assignedTo || ''}
-                    onChange={(e) => handleAssignSales(selectedRequest._id, e.target.value)}
-                    className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-gray-300 bg-white text-primary focus:outline-none"
-                  >
-                    <option value="">Unassigned</option>
-                    {adminUsers.map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name || `@${u.username}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Submission Timestamp Bar */}
+              <div className="p-3.5 rounded-xl bg-surface-warm border border-gray-200 flex items-center justify-between text-xs">
+                <span className="text-charcoal-500 font-medium">Submitted On:</span>
+                <span className="font-bold text-primary flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-gold" />
+                  {new Date(selectedRequest.createdAt).toLocaleString('en-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                </span>
               </div>
 
               {/* Owner / Representative Credentials */}
@@ -843,42 +544,42 @@ export const AdminSellRequests = () => {
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Property Name / Building:</span>
                     <strong className="text-primary text-sm">
-                      {selectedRequest.sellDetails?.propertyTitle || '—'}
+                      {selectedRequest.propertyTitle}
                     </strong>
                   </div>
 
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Property Type:</span>
                     <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-gold-subtle text-gold font-bold text-xs">
-                      {selectedRequest.sellDetails?.propertyType || '—'}
+                      {selectedRequest.propertyType}
                     </span>
                   </div>
 
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Location / Neighborhood:</span>
                     <strong className="text-primary">
-                      {selectedRequest.sellDetails?.location || '—'}
+                      {selectedRequest.location}
                     </strong>
                   </div>
 
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Carpet Area:</span>
                     <strong className="text-primary">
-                      {selectedRequest.sellDetails?.carpetArea || '—'}
+                      {selectedRequest.carpetArea}
                     </strong>
                   </div>
 
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Bedrooms / Configuration:</span>
                     <strong className="text-primary">
-                      {selectedRequest.sellDetails?.bedrooms || '—'}
+                      {selectedRequest.bedrooms || '—'}
                     </strong>
                   </div>
 
                   <div>
                     <span className="text-charcoal-400 block text-[11px]">Expected Target Price:</span>
                     <strong className="text-gold text-base font-extrabold block">
-                      {selectedRequest.sellDetails?.expectedPrice || '—'}
+                      {selectedRequest.expectedPrice}
                     </strong>
                   </div>
 
@@ -887,30 +588,31 @@ export const AdminSellRequests = () => {
                       Special Features, Finishes & Title Remarks:
                     </span>
                     <div className="p-3 rounded-lg bg-surface-warm border border-gray-200 text-charcoal-700 leading-relaxed whitespace-pre-line">
-                      {selectedRequest.sellDetails?.additionalNotes || selectedRequest.message || 'None provided'}
+                      {selectedRequest.additionalNotes || 'None provided'}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Internal Notes */}
+              {/* Internal Remarks */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-primary uppercase tracking-wider">
-                  Managing Partner Notes & Appraisal Comments
+                  Internal Remarks & Comments
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Record confidential property valuation notes, seller mandate terms, title verification..."
+                  placeholder="Record confidential property valuation notes, seller discussions, title verification..."
                   value={editingNotes}
                   onChange={(e) => setEditingNotes(e.target.value)}
                   className="w-full p-3.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary resize-none"
                 ></textarea>
                 <button
                   onClick={handleSaveNotes}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-black text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                  disabled={savingNotes}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-black text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Save className="w-3.5 h-3.5 text-gold" />
-                  <span>Save Notes</span>
+                  <span>{savingNotes ? 'Saving...' : 'Save Remarks'}</span>
                 </button>
               </div>
             </div>
