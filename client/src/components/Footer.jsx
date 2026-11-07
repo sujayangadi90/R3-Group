@@ -101,18 +101,18 @@ export const Footer = () => {
             <div className="space-y-3 text-xs text-gray-300">
               <p className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-                <span>Maker Chambers VI, Nariman Point, Mumbai, Maharashtra 400021</span>
+                <span>Bangalore</span>
               </p>
               <p className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-gold shrink-0" />
-                <a href="tel:+912249008800" className="hover:text-white transition-colors">
-                  +91 (022) 4900 8800
+                <a href="tel:+917676759595" className="hover:text-white transition-colors">
+                  +91 76767 59595
                 </a>
               </p>
               <p className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-gold shrink-0" />
-                <a href="mailto:concierge@r3group.in" className="hover:text-white transition-colors">
-                  concierge@r3group.in
+                <a href="mailto:Info@r3group.co.in" className="hover:text-white transition-colors">
+                  Info@r3group.co.in
                 </a>
               </p>
             </div>

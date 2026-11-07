@@ -101,7 +101,7 @@ export const ContactPage = () => {
               <div>
                 <span className="text-xs font-bold text-gold uppercase tracking-widest">Headquarters</span>
                 <h3 className="text-xl font-bold text-primary mt-1">R3 Group Real Estate Advisory</h3>
-                <p className="text-xs text-charcoal-500 mt-1">South Mumbai Private Desk</p>
+                <p className="text-xs text-charcoal-500 mt-1">Bangalore Private Advisory Desk</p>
               </div>
 
               <div className="space-y-4 pt-2 border-t border-gray-100 text-sm text-charcoal-700">
@@ -112,7 +112,7 @@ export const ContactPage = () => {
                   <div>
                     <span className="block text-xs font-bold text-charcoal-500 uppercase">Registered Office</span>
                     <span className="text-xs font-semibold text-primary block mt-0.5">
-                      Maker Chambers VI, 12th Floor, Nariman Point, Mumbai, Maharashtra 400021
+                      Bangalore
                     </span>
                   </div>
                 </div>
@@ -123,8 +123,8 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-charcoal-500 uppercase">Telephone Concierge</span>
-                    <a href="tel:+912249008800" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
-                      +91 (022) 4900 8800 / +91 98201 44552
+                    <a href="tel:+917676759595" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
+                      +91 76767 59595
                     </a>
                   </div>
                 </div>
@@ -135,8 +135,8 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-charcoal-500 uppercase">Secure Correspondence</span>
-                    <a href="mailto:concierge@r3group.in" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
-                      concierge@r3group.in
+                    <a href="mailto:Info@r3group.co.in" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
+                      Info@r3group.co.in
                     </a>
                   </div>
                 </div>

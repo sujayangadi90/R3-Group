@@ -451,7 +451,7 @@ export const PropertyDetailPage = () => {
                   </button>
 
                   <p className="text-[11px] text-center text-charcoal-500">
-                    Direct access via South Mumbai Advisory Desk.
+                    Direct access via Bangalore Advisory Desk.
                   </p>
                 </form>
               )}
