@@ -16,6 +16,7 @@ router.get('/dashboard', verifyAdmin, async (req, res) => {
       totalEnquiries,
       newEnquiries,
       siteVisitEnquiries,
+      scheduledFollowUps,
       sellSubmissions,
       contactEnquiries,
       recentEnquiries,
@@ -34,6 +35,9 @@ router.get('/dashboard', verifyAdmin, async (req, res) => {
           { preferredDate: { $exists: true, $ne: '' } },
         ],
       }),
+      Enquiry.countDocuments({
+        followUpDate: { $exists: true, $ne: '' },
+      }),
       SellRequest.countDocuments(),
       Enquiry.countDocuments({ type: 'contact' }),
       Enquiry.find().sort({ createdAt: -1 }).limit(5).populate('propertyId', 'title slug'),
@@ -51,6 +55,7 @@ router.get('/dashboard', verifyAdmin, async (req, res) => {
         newEnquiries,
         breakdown: {
           siteVisits: siteVisitEnquiries,
+          followUps: scheduledFollowUps,
           sellSubmissions,
           contactEnquiries,
         },

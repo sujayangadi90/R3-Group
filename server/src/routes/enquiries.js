@@ -83,6 +83,8 @@ router.get('/', verifyAdmin, async (req, res) => {
       status,
       siteVisitStatus,
       isSiteVisit,
+      isFollowUp,
+      followUpStatus,
       search,
       startDate,
       endDate,
@@ -93,6 +95,15 @@ router.get('/', verifyAdmin, async (req, res) => {
     } = req.query;
 
     const query = {};
+
+    if (isFollowUp === 'true') {
+      // Must have scheduled a follow-up date
+      query.followUpDate = { $exists: true, $ne: '' };
+    }
+
+    if (followUpStatus && followUpStatus !== 'all') {
+      query.followUpStatus = followUpStatus;
+    }
 
     if (isSiteVisit === 'true') {
       // Filter any enquiry that has a scheduled site visit (type === 'site_visit' OR status === 'Site Visit' OR has preferredDate)
@@ -195,6 +206,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
       preferredDate,
       preferredTime,
       siteVisitStatus,
+      followUpDate,
+      followUpTime,
+      followUpStatus,
+      followUpNotes,
       propertyId,
       propertyTitle,
     } = req.body;
@@ -213,6 +228,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
     if (preferredDate !== undefined) enquiry.preferredDate = preferredDate;
     if (preferredTime !== undefined) enquiry.preferredTime = preferredTime;
     if (siteVisitStatus !== undefined) enquiry.siteVisitStatus = siteVisitStatus;
+    if (followUpDate !== undefined) enquiry.followUpDate = followUpDate;
+    if (followUpTime !== undefined) enquiry.followUpTime = followUpTime;
+    if (followUpStatus !== undefined) enquiry.followUpStatus = followUpStatus;
+    if (followUpNotes !== undefined) enquiry.followUpNotes = followUpNotes;
     if (propertyId !== undefined) enquiry.propertyId = propertyId;
     if (propertyTitle !== undefined) enquiry.propertyTitle = propertyTitle;
     if (assignedTo !== undefined) {

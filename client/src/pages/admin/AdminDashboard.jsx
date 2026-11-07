@@ -18,12 +18,14 @@ import {
   Users,
   FileText,
   Calendar,
+  CalendarClock,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { AdminEnquiries } from './AdminEnquiries';
 import { AdminSellRequests } from './AdminSellRequests';
 import { AdminSiteVisits } from './AdminSiteVisits';
+import { AdminScheduledFollowUps } from './AdminScheduledFollowUps';
 import { AdminProperties } from './AdminProperties';
 import { AdminSettings } from './AdminSettings';
 
@@ -31,7 +33,7 @@ export const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'sellRequests' | 'siteVisits' | 'properties' | 'settings'
+  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'sellRequests' | 'siteVisits' | 'scheduledFollowUps' | 'properties' | 'settings'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProperties: 0,
@@ -40,6 +42,7 @@ export const AdminDashboard = () => {
     newEnquiries: 0,
     breakdown: {
       siteVisits: 0,
+      followUps: 0,
       sellSubmissions: 0,
       contactEnquiries: 0,
     },
@@ -256,7 +259,35 @@ export const AdminDashboard = () => {
                   </span>
                 </button>
 
-                {/* 4. Properties Management */}
+                {/* 4. Scheduled Followups */}
+                <button
+                  onClick={() => {
+                    setActiveTab('scheduledFollowUps');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    activeTab === 'scheduledFollowUps'
+                      ? 'bg-gold text-white shadow-md'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <CalendarClock className={`w-4 h-4 ${activeTab === 'scheduledFollowUps' ? 'text-white' : 'text-gold'}`} />
+                    <span>4. Scheduled Followups</span>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      activeTab === 'scheduledFollowUps'
+                        ? 'bg-white text-gold'
+                        : 'bg-white/10 text-gray-300'
+                    }`}
+                  >
+                    {stats.breakdown?.followUps || 0}
+                  </span>
+                </button>
+
+                {/* 5. Properties Management */}
                 <button
                   onClick={() => {
                     setActiveTab('properties');
@@ -270,7 +301,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-4 h-4 ${activeTab === 'properties' ? 'text-white' : 'text-gold'}`} />
-                    <span>4. Properties Management</span>
+                    <span>5. Properties Management</span>
                   </div>
 
                   <span
@@ -284,7 +315,7 @@ export const AdminDashboard = () => {
                   </span>
                 </button>
 
-                {/* 5. Settings (User Management) */}
+                {/* 6. Settings (User Management) */}
                 <button
                   onClick={() => {
                     setActiveTab('settings');
@@ -298,7 +329,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-white' : 'text-gold'}`} />
-                    <span>5. Settings & Users</span>
+                    <span>6. Settings & Users</span>
                   </div>
 
                   <span
@@ -401,9 +432,11 @@ export const AdminDashboard = () => {
                 ? '2. Sell Property Requests'
                 : activeTab === 'siteVisits'
                 ? '3. Scheduled Site Inspections'
+                : activeTab === 'scheduledFollowUps'
+                ? '4. Scheduled Client Follow-ups'
                 : activeTab === 'properties'
-                ? '4. Properties Portfolio Management'
-                : '5. Settings & Administrator User Management'}
+                ? '5. Properties Portfolio Management'
+                : '6. Settings & Administrator User Management'}
             </h1>
           </div>
 
@@ -435,6 +468,8 @@ export const AdminDashboard = () => {
               <AdminSellRequests />
             ) : activeTab === 'siteVisits' ? (
               <AdminSiteVisits />
+            ) : activeTab === 'scheduledFollowUps' ? (
+              <AdminScheduledFollowUps />
             ) : activeTab === 'properties' ? (
               <AdminProperties />
             ) : (

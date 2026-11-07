@@ -100,6 +100,24 @@ const enquirySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    followUpDate: {
+      type: String,
+      default: '', // 'YYYY-MM-DD'
+    },
+    followUpTime: {
+      type: String,
+      default: '', // e.g. '11:00 AM'
+    },
+    followUpStatus: {
+      type: String,
+      enum: ['Pending', 'Completed', 'Cancelled', 'Overdue', ''],
+      default: '',
+    },
+    followUpNotes: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     callLogs: [
       {
         callMade: {
