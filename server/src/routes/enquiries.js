@@ -232,6 +232,51 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// POST /api/enquiries/:id/call-logs - Add a call log entry (Admin Only)
+router.post('/:id/call-logs', verifyAdmin, async (req, res) => {
+  try {
+    const { callMade = 'Yes', callStatus, notes = '' } = req.body;
+
+    if (!callStatus) {
+      return res.status(400).json({ success: false, message: 'Call Status is required' });
+    }
+
+    const enquiry = await Enquiry.findById(req.params.id);
+    if (!enquiry) {
+      return res.status(404).json({ success: false, message: 'Enquiry not found' });
+    }
+
+    const callerName = req.user?.name || req.user?.username || 'Admin';
+    const callerId = req.user?.id || null;
+
+    const newLog = {
+      callMade: callMade === 'No' ? 'No' : 'Yes',
+      callStatus: callStatus.trim(),
+      notes: notes.trim(),
+      calledBy: callerName,
+      calledById: callerId,
+      calledAt: new Date(),
+    };
+
+    if (!Array.isArray(enquiry.callLogs)) {
+      enquiry.callLogs = [];
+    }
+
+    // Add to beginning of array so newest is first
+    enquiry.callLogs.unshift(newLog);
+
+    await enquiry.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Call log added successfully',
+      data: enquiry.callLogs,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // DELETE /api/enquiries/:id - Delete enquiry (Super Admin Only)
 router.delete('/:id', verifySuperAdmin, async (req, res) => {
   try {

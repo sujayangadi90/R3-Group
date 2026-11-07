@@ -100,6 +100,38 @@ const enquirySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    callLogs: [
+      {
+        callMade: {
+          type: String,
+          enum: ['Yes', 'No'],
+          default: 'Yes',
+        },
+        callStatus: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        notes: {
+          type: String,
+          default: '',
+          trim: true,
+        },
+        calledBy: {
+          type: String,
+          default: 'Admin',
+        },
+        calledById: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          default: null,
+        },
+        calledAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

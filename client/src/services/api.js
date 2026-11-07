@@ -167,6 +167,15 @@ export const api = {
     return res.json();
   },
 
+  async addCallLog(enquiryId, data) {
+    const res = await fetch(`${API_BASE}/enquiries/${enquiryId}/call-logs`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
   async deleteEnquiry(id) {
     const res = await fetch(`${API_BASE}/enquiries/${id}`, {
       method: 'DELETE',

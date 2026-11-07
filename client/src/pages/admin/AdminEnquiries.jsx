@@ -24,9 +24,12 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  PhoneCall,
+  History,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { CallLogModal } from '../../components/CallLogModal';
 
 export const AdminEnquiries = () => {
   const { user: currentUser } = useAuth();
@@ -82,6 +85,9 @@ export const AdminEnquiries = () => {
   const [siteVisitPropertyId, setSiteVisitPropertyId] = useState('');
   const [schedulingVisit, setSchedulingVisit] = useState(false);
   const [scheduleSuccessMsg, setScheduleSuccessMsg] = useState('');
+
+  // Call Log Modal State
+  const [callLogEnquiry, setCallLogEnquiry] = useState(null);
 
   // Compute start & end dates based on preset
   const getDateRange = () => {
@@ -413,6 +419,20 @@ export const AdminEnquiries = () => {
     setSiteVisitTime(item.preferredTime || '11:00 AM');
     setSiteVisitPropertyId(item.propertyId?._id || item.propertyId || '');
     setScheduleSuccessMsg('');
+  };
+
+  const handleCallLogAdded = (enquiryId, updatedLogs) => {
+    setEnquiries((prev) =>
+      prev.map((item) =>
+        item._id === enquiryId ? { ...item, callLogs: updatedLogs } : item
+      )
+    );
+    if (selectedEnquiry && selectedEnquiry._id === enquiryId) {
+      setSelectedEnquiry((prev) => ({ ...prev, callLogs: updatedLogs }));
+    }
+    if (callLogEnquiry && callLogEnquiry._id === enquiryId) {
+      setCallLogEnquiry((prev) => ({ ...prev, callLogs: updatedLogs }));
+    }
   };
 
   // Check if current user is Super Admin
@@ -1005,6 +1025,22 @@ export const AdminEnquiries = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
+                        onClick={() => setCallLogEnquiry(item)}
+                        className={`p-1.5 rounded-lg border transition-all relative ${
+                          item.callLogs && item.callLogs.length > 0
+                            ? 'bg-gold/10 border-gold/40 text-gold hover:bg-gold/20'
+                            : 'border-gray-200 text-charcoal-600 hover:text-gold hover:border-gold'
+                        }`}
+                        title={`Call History & Logs (${item.callLogs?.length || 0})`}
+                      >
+                        <PhoneCall className="w-3.5 h-3.5" />
+                        {item.callLogs && item.callLogs.length > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 bg-gold text-white text-[9px] font-bold rounded-full min-w-3.5 text-center leading-tight shadow-xs">
+                            {item.callLogs.length}
+                          </span>
+                        )}
+                      </button>
+                      <button
                         onClick={() => openDrawer(item)}
                         className="p-1.5 rounded-lg border border-gray-200 text-charcoal-600 hover:text-gold hover:border-gold transition-colors"
                         title="View Full Details"
@@ -1412,6 +1448,75 @@ export const AdminEnquiries = () => {
                   {selectedEnquiry.message || 'No additional message provided.'}
                 </div>
               </div>
+
+              {/* Call History & Logs Quick Preview inside Dossier */}
+              <div className="p-4 rounded-xl border border-gray-200 bg-surface-warm/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PhoneCall className="w-4 h-4 text-gold" />
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Call History & Logs ({selectedEnquiry.callLogs?.length || 0})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCallLogEnquiry(selectedEnquiry)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary hover:bg-black text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold" />
+                    <span>Manage / Add Log</span>
+                  </button>
+                </div>
+
+                {selectedEnquiry.callLogs && selectedEnquiry.callLogs.length > 0 ? (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {selectedEnquiry.callLogs.slice(0, 3).map((log, idx) => (
+                      <div
+                        key={log._id || idx}
+                        className="p-3 rounded-lg bg-white border border-gray-200/80 text-xs space-y-1 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-primary text-[11px]">
+                            {new Date(log.calledAt).toLocaleString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            {log.callStatus}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-charcoal-500">
+                          Call Made By: <strong className="text-charcoal-800">{log.calledBy || 'Admin'}</strong>
+                          {log.callMade === 'No' && ' · Call Not Made'}
+                        </div>
+                        {log.notes && (
+                          <p className="text-charcoal-700 text-xs pt-1 border-t border-gray-100 italic">
+                            "{log.notes}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                    {selectedEnquiry.callLogs.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setCallLogEnquiry(selectedEnquiry)}
+                        className="text-xs font-bold text-gold hover:underline block text-center w-full pt-1"
+                      >
+                        View all {selectedEnquiry.callLogs.length} call logs →
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-charcoal-400 italic">
+                    No calls recorded yet. Click "Manage / Add Log" to record a call outcome.
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -1690,6 +1795,15 @@ export const AdminEnquiries = () => {
           </div>
         </div>
       )}
+
+      {/* Call History & Logs Modal */}
+      <CallLogModal
+        enquiry={callLogEnquiry}
+        isOpen={!!callLogEnquiry}
+        onClose={() => setCallLogEnquiry(null)}
+        onLogAdded={handleCallLogAdded}
+        currentUser={currentUser}
+      />
     </div>
   );
 };
