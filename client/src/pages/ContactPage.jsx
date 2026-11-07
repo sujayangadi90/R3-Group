@@ -111,8 +111,8 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-charcoal-500 uppercase">Registered Office</span>
-                    <span className="text-xs font-semibold text-primary block mt-0.5">
-                      Bangalore
+                    <span className="text-xs font-semibold text-primary block mt-0.5 leading-relaxed">
+                      Wasa plaza, 2nd floor, Doddanekkundi, near Srikrishna temple, Karthik Nagar, Marathahalli, Bangalore - 560037
                     </span>
                   </div>
                 </div>
