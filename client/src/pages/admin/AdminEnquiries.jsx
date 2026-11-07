@@ -71,10 +71,17 @@ export const AdminEnquiries = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
-  // Selected enquiry for inspection drawer
+  // Selected enquiry for inspection drawer / modal
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   const [editingNotes, setEditingNotes] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+
+  // Site Visit Schedule Form state within Enquiry Modal
+  const [siteVisitDate, setSiteVisitDate] = useState('');
+  const [siteVisitTime, setSiteVisitTime] = useState('Morning (10:00 AM - 1:00 PM)');
+  const [siteVisitPropertyId, setSiteVisitPropertyId] = useState('');
+  const [schedulingVisit, setSchedulingVisit] = useState(false);
+  const [scheduleSuccessMsg, setScheduleSuccessMsg] = useState('');
 
   // Compute start & end dates based on preset
   const getDateRange = () => {
@@ -331,6 +338,55 @@ export const AdminEnquiries = () => {
     }
   };
 
+  const handleScheduleSiteVisit = async (e) => {
+    e.preventDefault();
+    if (!selectedEnquiry) return;
+    if (!siteVisitDate) {
+      alert('Please choose a preferred date for the site visit.');
+      return;
+    }
+
+    setSchedulingVisit(true);
+    setScheduleSuccessMsg('');
+
+    const targetProp = propertiesList.find((p) => p._id === siteVisitPropertyId);
+    const targetTitle = targetProp ? targetProp.title : (selectedEnquiry.propertyTitle || 'General Viewing');
+
+    try {
+      const res = await api.updateEnquiry(selectedEnquiry._id, {
+        status: 'Site Visit',
+        preferredDate: siteVisitDate,
+        preferredTime: siteVisitTime,
+        propertyId: siteVisitPropertyId || selectedEnquiry.propertyId,
+        propertyTitle: targetTitle,
+      });
+
+      if (res.success) {
+        const updated = {
+          ...selectedEnquiry,
+          status: 'Site Visit',
+          preferredDate: siteVisitDate,
+          preferredTime: siteVisitTime,
+          propertyId: siteVisitPropertyId || selectedEnquiry.propertyId,
+          propertyTitle: targetTitle,
+        };
+        setSelectedEnquiry(updated);
+        setEnquiries((prev) =>
+          prev.map((item) => (item._id === selectedEnquiry._id ? updated : item))
+        );
+        setScheduleSuccessMsg('Site inspection scheduled successfully!');
+        setTimeout(() => setScheduleSuccessMsg(''), 4000);
+      } else {
+        alert(res.message || 'Failed to update schedule.');
+      }
+    } catch (err) {
+      console.error('Failed to schedule site visit:', err);
+      alert('Error updating site visit schedule.');
+    } finally {
+      setSchedulingVisit(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to permanently delete this lead record?')) return;
     try {
@@ -349,6 +405,10 @@ export const AdminEnquiries = () => {
   const openDrawer = (item) => {
     setSelectedEnquiry(item);
     setEditingNotes(item.adminNotes || '');
+    setSiteVisitDate(item.preferredDate || '');
+    setSiteVisitTime(item.preferredTime || 'Morning (10:00 AM - 1:00 PM)');
+    setSiteVisitPropertyId(item.propertyId?._id || item.propertyId || '');
+    setScheduleSuccessMsg('');
   };
 
   // Check if current user is Super Admin
@@ -996,46 +1056,51 @@ export const AdminEnquiries = () => {
         </div>
       </div>
 
-      {/* Details Drawer / Modal */}
+      {/* Details Big Modal */}
       {selectedEnquiry && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-end">
-          <div className="w-full max-w-xl h-full bg-white shadow-2xl flex flex-col overflow-y-auto animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-6 bg-primary text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden my-6 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-primary text-white flex items-center justify-between shrink-0">
               <div>
                 <span className="text-gold text-xs font-bold uppercase tracking-wider block">
                   Lead Dossier Record
                 </span>
-                <h3 className="text-lg font-bold mt-0.5">{selectedEnquiry.name}</h3>
+                <h3 className="text-lg font-bold mt-0.5 flex items-center gap-2">
+                  <span>{selectedEnquiry.name}</span>
+                  <span className="text-xs font-normal text-gray-300">
+                    ({selectedEnquiry.propertyTitle || 'General Advisory'})
+                  </span>
+                </h3>
               </div>
               <button
                 onClick={() => setSelectedEnquiry(null)}
-                className="p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/10"
+                className="p-1.5 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Drawer Body */}
-            <div className="p-6 space-y-6 flex-1">
-              {/* Type and Status */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+            {/* Modal Body */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
+              {/* Type, Status, Intent, Rep Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-surface-warm border border-gray-200/80">
                 <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1.5">
                     Inquiry Type
                   </span>
                   {getTypeBadge(selectedEnquiry.type)}
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1.5">
                     Lead Status
                   </span>
                   <select
                     value={selectedEnquiry.status}
                     onChange={(e) => handleStatusChange(selectedEnquiry._id, e.target.value)}
-                    className={`text-xs font-semibold px-3 py-1 rounded-full border ${getStatusBadge(
+                    className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${getStatusBadge(
                       selectedEnquiry.status
-                    )}`}
+                    )} cursor-pointer`}
                   >
                     <option value="New">New</option>
                     <option value="Contacted">Contacted</option>
@@ -1047,15 +1112,15 @@ export const AdminEnquiries = () => {
                   </select>
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1.5">
                     Intent (Temperature)
                   </span>
                   <select
                     value={selectedEnquiry.temperature || 'Warm'}
                     onChange={(e) => handleTemperatureChange(selectedEnquiry._id, e.target.value)}
-                    className={`text-xs px-3 py-1 rounded-full border ${
+                    className={`text-xs px-3 py-1.5 rounded-full border ${
                       getTemperatureBadge(selectedEnquiry.temperature || 'Warm').pill
-                    }`}
+                    } cursor-pointer`}
                   >
                     <option value="Hot">🔥 Hot Intent</option>
                     <option value="Warm">⚡ Warm Intent</option>
@@ -1063,13 +1128,13 @@ export const AdminEnquiries = () => {
                   </select>
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1">
+                  <span className="text-[11px] font-bold text-charcoal-500 uppercase block mb-1.5">
                     Assigned Sales Rep
                   </span>
                   <select
                     value={selectedEnquiry.assignedTo || ''}
                     onChange={(e) => handleAssignSales(selectedEnquiry._id, e.target.value)}
-                    className="text-xs font-semibold px-3 py-1 rounded-lg border border-gray-300 bg-white text-primary focus:outline-none"
+                    className="w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white text-primary focus:outline-none cursor-pointer"
                   >
                     <option value="">Unassigned</option>
                     {adminUsers.map((u) => (
@@ -1081,13 +1146,44 @@ export const AdminEnquiries = () => {
                 </div>
               </div>
 
-              {/* Lead Source Selector / Display in Drawer */}
-              <div className="p-3.5 rounded-xl bg-surface-warm border border-gray-200 space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                      Lead Source Channel:
-                    </span>
+              {/* Top Details 2-Column Layout */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Client Contact Info */}
+                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xs space-y-2.5">
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-gold" />
+                    <span>Contact Information</span>
+                  </h4>
+                  <div className="space-y-2 text-xs pt-1">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gold shrink-0" />
+                      <a
+                        href={`tel:${selectedEnquiry.phone}`}
+                        className="text-primary font-bold hover:underline tracking-wide"
+                      >
+                        {selectedEnquiry.phone}
+                      </a>
+                    </div>
+                    {selectedEnquiry.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gold shrink-0" />
+                        <a
+                          href={`mailto:${selectedEnquiry.email}`}
+                          className="text-primary font-semibold hover:underline truncate"
+                        >
+                          {selectedEnquiry.email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lead Source Selector / Display */}
+                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Lead Source Channel
+                    </h4>
                   </div>
                   <select
                     value={selectedEnquiry.leadSource || ''}
@@ -1107,7 +1203,7 @@ export const AdminEnquiries = () => {
                         console.error('Failed to update lead source:', err);
                       }
                     }}
-                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
                   >
                     <option value="">Select / Update Source...</option>
                     {leadSourcesList.map((src) => (
@@ -1116,159 +1212,168 @@ export const AdminEnquiries = () => {
                       </option>
                     ))}
                   </select>
-                </div>
 
-                {/* Referral Attribution input in Drawer */}
-                {(selectedEnquiry.leadSource || '').toLowerCase().includes('referral') && (
-                  <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-gold-dark">Referral Name:</span>
-                    <input
-                      type="text"
-                      placeholder="Enter referrer name..."
-                      defaultValue={selectedEnquiry.referralName || ''}
-                      onBlur={async (e) => {
-                        const val = e.target.value.trim();
-                        if (val !== selectedEnquiry.referralName) {
-                          try {
-                            const res = await api.updateEnquiry(selectedEnquiry._id, { referralName: val });
-                            if (res.success) {
-                              setSelectedEnquiry({ ...selectedEnquiry, referralName: val });
-                              setEnquiries((prev) =>
-                                prev.map((item) =>
-                                  item._id === selectedEnquiry._id ? { ...item, referralName: val } : item
-                                )
-                              );
+                  {/* Referral Attribution */}
+                  {(selectedEnquiry.leadSource || '').toLowerCase().includes('referral') && (
+                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-gold-dark">Referral Name:</span>
+                      <input
+                        type="text"
+                        placeholder="Enter referrer name..."
+                        defaultValue={selectedEnquiry.referralName || ''}
+                        onBlur={async (e) => {
+                          const val = e.target.value.trim();
+                          if (val !== selectedEnquiry.referralName) {
+                            try {
+                              const res = await api.updateEnquiry(selectedEnquiry._id, { referralName: val });
+                              if (res.success) {
+                                setSelectedEnquiry({ ...selectedEnquiry, referralName: val });
+                                setEnquiries((prev) =>
+                                  prev.map((item) =>
+                                    item._id === selectedEnquiry._id ? { ...item, referralName: val } : item
+                                  )
+                                );
+                              }
+                            } catch (err) {
+                              console.error('Failed to update referral name:', err);
                             }
-                          } catch (err) {
-                            console.error('Failed to update referral name:', err);
                           }
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1 max-w-[240px]"
-                    />
-                  </div>
-                )}
+                        }}
+                        className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1"
+                      />
+                    </div>
+                  )}
 
-                {/* Broker Attribution input in Drawer */}
-                {((selectedEnquiry.leadSource || '').toLowerCase().includes('broker') ||
-                  (selectedEnquiry.leadSource || '').toLowerCase().includes('channel partner')) && (
-                  <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-gold-dark">Broker / CP Name:</span>
-                    <input
-                      type="text"
-                      placeholder="Enter broker or agency..."
-                      defaultValue={selectedEnquiry.brokerName || ''}
-                      onBlur={async (e) => {
-                        const val = e.target.value.trim();
-                        if (val !== selectedEnquiry.brokerName) {
-                          try {
-                            const res = await api.updateEnquiry(selectedEnquiry._id, { brokerName: val });
-                            if (res.success) {
-                              setSelectedEnquiry({ ...selectedEnquiry, brokerName: val });
-                              setEnquiries((prev) =>
-                                prev.map((item) =>
-                                  item._id === selectedEnquiry._id ? { ...item, brokerName: val } : item
-                                )
-                              );
+                  {/* Broker Attribution */}
+                  {((selectedEnquiry.leadSource || '').toLowerCase().includes('broker') ||
+                    (selectedEnquiry.leadSource || '').toLowerCase().includes('channel partner')) && (
+                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-gold-dark">Broker / CP Name:</span>
+                      <input
+                        type="text"
+                        placeholder="Enter broker or agency..."
+                        defaultValue={selectedEnquiry.brokerName || ''}
+                        onBlur={async (e) => {
+                          const val = e.target.value.trim();
+                          if (val !== selectedEnquiry.brokerName) {
+                            try {
+                              const res = await api.updateEnquiry(selectedEnquiry._id, { brokerName: val });
+                              if (res.success) {
+                                setSelectedEnquiry({ ...selectedEnquiry, brokerName: val });
+                                setEnquiries((prev) =>
+                                  prev.map((item) =>
+                                    item._id === selectedEnquiry._id ? { ...item, brokerName: val } : item
+                                  )
+                                );
+                              }
+                            } catch (err) {
+                              console.error('Failed to update broker name:', err);
                             }
-                          } catch (err) {
-                            console.error('Failed to update broker name:', err);
                           }
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1 max-w-[240px]"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Client Contact Info */}
-              <div className="p-4 rounded-xl bg-surface-warm border border-gray-200 space-y-2.5">
-                <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
-                  Contact Information
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gold shrink-0" />
-                    <a
-                      href={`tel:${selectedEnquiry.phone}`}
-                      className="text-primary font-semibold hover:underline"
-                    >
-                      {selectedEnquiry.phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-gold shrink-0" />
-                    <a
-                      href={`mailto:${selectedEnquiry.email}`}
-                      className="text-primary font-semibold hover:underline truncate"
-                    >
-                      {selectedEnquiry.email}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sell Property Particulars if applicable */}
-              {selectedEnquiry.type === 'sell_property' && selectedEnquiry.sellDetails && (
-                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200 space-y-3">
-                  <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
-                    Asset Divestment Mandate Particulars
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Property Title</span>
-                      <span className="font-bold text-primary">{selectedEnquiry.sellDetails.propertyTitle || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Category</span>
-                      <span className="font-bold text-primary">{selectedEnquiry.sellDetails.propertyType}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Location</span>
-                      <span className="font-bold text-primary">{selectedEnquiry.sellDetails.location}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Expected Price</span>
-                      <span className="font-bold text-gold">{selectedEnquiry.sellDetails.expectedPrice}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Carpet Area</span>
-                      <span className="font-bold text-primary">{selectedEnquiry.sellDetails.carpetArea}</span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Bedrooms</span>
-                      <span className="font-bold text-primary">{selectedEnquiry.sellDetails.bedrooms} BHK</span>
-                    </div>
-                  </div>
-                  {selectedEnquiry.sellDetails.additionalNotes && (
-                    <div className="pt-2 border-t border-amber-200/60">
-                      <span className="text-[11px] text-charcoal-500 uppercase block">Owner Notes</span>
-                      <p className="text-xs text-charcoal-700 mt-0.5">{selectedEnquiry.sellDetails.additionalNotes}</p>
+                        }}
+                        className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1"
+                      />
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* Site Visit Particulars */}
-              {selectedEnquiry.type === 'site_visit' && (
-                <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-200 space-y-2">
-                  <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider">
-                    Site Visit Appointment
-                  </h4>
-                  <div className="text-xs space-y-1">
-                    <p>
-                      <strong>Target Property:</strong> {selectedEnquiry.propertyTitle || 'General Viewing'}
-                    </p>
-                    <p>
-                      <strong>Preferred Date:</strong> {selectedEnquiry.preferredDate || 'Not specified'}
-                    </p>
-                    <p>
-                      <strong>Preferred Time:</strong> {selectedEnquiry.preferredTime || 'Morning'}
+              {/* Schedule Site Visit Section */}
+              <div className="p-5 rounded-xl bg-blue-50/50 border border-blue-200/80 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-700" />
+                      <span>Schedule / Manage Site Visit</span>
+                    </h4>
+                    <p className="text-[11px] text-blue-700 mt-0.5">
+                      Book an exclusive private site inspection with the client for a specific property.
                     </p>
                   </div>
+                  {selectedEnquiry.preferredDate && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-900 text-xs font-bold shrink-0">
+                      <Clock className="w-3.5 h-3.5 text-blue-600" />
+                      <span>
+                        Booked: {selectedEnquiry.preferredDate} ({selectedEnquiry.preferredTime || 'Morning'})
+                      </span>
+                    </span>
+                  )}
                 </div>
-              )}
+
+                {scheduleSuccessMsg && (
+                  <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{scheduleSuccessMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleScheduleSiteVisit} className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
+                  <div className="sm:col-span-5">
+                    <label className="block text-[10px] font-bold text-blue-900 uppercase mb-1">
+                      Target Property
+                    </label>
+                    <select
+                      value={siteVisitPropertyId}
+                      onChange={(e) => setSiteVisitPropertyId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-blue-200 text-xs bg-white text-primary focus:outline-none focus:border-blue-500 font-medium cursor-pointer"
+                    >
+                      <option value="">
+                        {selectedEnquiry.propertyTitle ? `${selectedEnquiry.propertyTitle} (Current)` : 'Select Property...'}
+                      </option>
+                      {propertiesList.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.title} ({p.propertyType} - {p.location})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[10px] font-bold text-blue-900 uppercase mb-1">
+                      Preferred Visit Date *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={siteVisitDate}
+                      onChange={(e) => setSiteVisitDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-blue-200 text-xs bg-white text-primary focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold text-blue-900 uppercase mb-1">
+                      Time Slot
+                    </label>
+                    <select
+                      value={siteVisitTime}
+                      onChange={(e) => setSiteVisitTime(e.target.value)}
+                      className="w-full px-2.5 py-2 rounded-lg border border-blue-200 text-xs bg-white text-primary focus:outline-none focus:border-blue-500 cursor-pointer"
+                    >
+                      <option value="Morning (10:00 AM - 1:00 PM)">Morning (10 AM)</option>
+                      <option value="Afternoon (1:00 PM - 4:00 PM)">Afternoon (2 PM)</option>
+                      <option value="Sunset / Evening (4:00 PM - 7:00 PM)">Sunset (5 PM)</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2 flex items-end">
+                    <button
+                      type="submit"
+                      disabled={schedulingVisit}
+                      className="w-full py-2 px-3 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                    >
+                      {schedulingVisit ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        <>
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{selectedEnquiry.preferredDate ? 'Update' : 'Schedule'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
 
               {/* Client Message */}
               <div>
@@ -1289,7 +1394,7 @@ export const AdminEnquiries = () => {
                   <span className="text-[11px] text-charcoal-500">Visible only to admins</span>
                 </div>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={editingNotes}
                   onChange={(e) => setEditingNotes(e.target.value)}
                   placeholder="Record call logs, client net worth, architect visit notes, or next steps..."
@@ -1305,17 +1410,25 @@ export const AdminEnquiries = () => {
               </div>
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between shrink-0">
               <span className="text-[11px] text-charcoal-500">
                 Received: {new Date(selectedEnquiry.createdAt).toLocaleString()}
               </span>
-              <button
-                onClick={() => handleDelete(selectedEnquiry._id)}
-                className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Delete Lead
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleDelete(selectedEnquiry._id)}
+                  className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete Lead
+                </button>
+                <button
+                  onClick={() => setSelectedEnquiry(null)}
+                  className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-black transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
