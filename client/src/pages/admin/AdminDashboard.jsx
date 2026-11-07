@@ -65,35 +65,51 @@ export const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-surface flex flex-col lg:flex-row">
       {/* Mobile Top Header (Mobile only) */}
-      <div className="lg:hidden bg-primary text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-[#333333]">
+      <div className="lg:hidden bg-[#1A1A1A] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 border-b border-[#2E2E2E]">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="p-1.5 rounded-lg bg-white/10 text-white"
+            onClick={() => setMobileSidebarOpen(true)}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer"
+            aria-label="Open Navigation Menu"
           >
-            {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <Menu className="w-5 h-5" />
           </button>
-          <img
-            src="/r3_logo.png"
-            alt="R3 Group"
-            className="h-8 w-auto object-contain bg-white/10 rounded p-1"
-          />
-          <span className="font-bold text-xs text-white">Admin Terminal</span>
+          <div className="flex items-center gap-2">
+            <div className="bg-white rounded-lg p-1 shadow-sm">
+              <img
+                src="/r3_logo.png"
+                alt="R3 Group Logo"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
+            <div>
+              <span className="font-bold text-xs text-white block leading-tight">Admin Terminal</span>
+              <span className="text-[10px] text-gold font-semibold block leading-tight">
+                {activeTab === 'enquiries'
+                  ? 'Enquiries Desk'
+                  : activeTab === 'sellRequests'
+                  ? 'Sell Property Req'
+                  : activeTab === 'properties'
+                  ? 'Properties'
+                  : 'Settings'}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             to="/"
             target="_blank"
-            className="p-1.5 rounded-lg bg-white/10 text-gold"
-            title="View Live Site"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gold transition-colors"
+            title="View Live Website"
           >
             <ExternalLink className="w-4 h-4" />
           </Link>
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-lg bg-white/10 text-red-400"
-            title="Log Out"
+            className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer"
+            title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -104,19 +120,19 @@ export const AdminDashboard = () => {
       {/* VERTICAL SIDEBAR NAVIGATION */}
       {/* ========================================================= */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 bg-[#1A1A1A] text-white border-r border-[#2E2E2E] flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-[#1A1A1A] text-white border-r border-[#2E2E2E] flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 shadow-2xl lg:shadow-none ${
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand & Header */}
         <div>
-          <div className="p-6 border-b border-[#2A2A2A] flex items-center justify-between">
+          <div className="p-5 sm:p-6 border-b border-[#2A2A2A] flex items-center justify-between bg-[#141414]">
             <Link to="/" target="_blank" className="flex items-center gap-3">
               <div className="bg-white rounded-xl p-1.5 shadow-sm">
                 <img
                   src="/r3_logo.png"
                   alt="R3 Group Logo"
-                  className="h-10 w-auto object-contain"
+                  className="h-9 sm:h-10 w-auto object-contain"
                 />
               </div>
               <div>
@@ -131,7 +147,8 @@ export const AdminDashboard = () => {
 
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              className="lg:hidden text-gray-400 hover:text-white"
+              className="lg:hidden p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-colors cursor-pointer"
+              aria-label="Close Navigation Menu"
             >
               <X className="w-5 h-5" />
             </button>
@@ -332,7 +349,7 @@ export const AdminDashboard = () => {
       {mobileSidebarOpen && (
         <div
           onClick={() => setMobileSidebarOpen(false)}
-          className="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition-opacity"
         ></div>
       )}
 
