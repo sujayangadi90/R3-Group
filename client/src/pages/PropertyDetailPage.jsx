@@ -414,11 +414,10 @@ export const PropertyDetailPage = () => {
 
                   <div>
                     <label className="block text-[11px] font-bold text-charcoal-600 uppercase mb-1">
-                      Email Address *
+                      Email Address <span className="text-charcoal-400 font-normal lowercase">(optional)</span>
                     </label>
                     <input
                       type="email"
-                      required
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}

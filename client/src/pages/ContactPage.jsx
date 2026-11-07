@@ -249,11 +249,10 @@ export const ContactPage = () => {
 
                   <div>
                     <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                      Corporate / Work Email *
+                      Corporate / Work Email <span className="text-charcoal-400 font-normal lowercase">(optional)</span>
                     </label>
                     <input
                       type="email"
-                      required
                       placeholder="name@company.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}

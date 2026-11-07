@@ -150,11 +150,10 @@ export const SiteVisitModal = ({ property, isOpen, onClose }) => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wider mb-1">
-                    Work Email *
+                    Work Email <span className="text-charcoal-400 font-normal lowercase">(optional)</span>
                   </label>
                   <input
                     type="email"
-                    required
                     placeholder="name@company.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
