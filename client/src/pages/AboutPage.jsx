@@ -61,7 +61,7 @@ export const AboutPage = () => {
               <div className="mt-4 text-center space-y-1">
                 <p className="font-bold text-primary text-base">Private Real Estate Advisory</p>
                 <p className="text-xs font-semibold text-gold tracking-widest uppercase">
-                  Mumbai • Dubai • London Desk
+                  Bangalore • Hyderabad • Chennai
                 </p>
               </div>
               <div className="w-full mt-6 pt-4 border-t border-gray-100 flex justify-between items-center text-center">
