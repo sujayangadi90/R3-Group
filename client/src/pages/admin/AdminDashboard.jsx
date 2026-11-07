@@ -17,11 +17,13 @@ import {
   PlusCircle,
   Users,
   FileText,
+  Calendar,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { AdminEnquiries } from './AdminEnquiries';
 import { AdminSellRequests } from './AdminSellRequests';
+import { AdminSiteVisits } from './AdminSiteVisits';
 import { AdminProperties } from './AdminProperties';
 import { AdminSettings } from './AdminSettings';
 
@@ -29,7 +31,7 @@ export const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'sellRequests' | 'properties' | 'settings'
+  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'sellRequests' | 'siteVisits' | 'properties' | 'settings'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProperties: 0,
@@ -226,7 +228,35 @@ export const AdminDashboard = () => {
                   </span>
                 </button>
 
-                {/* 3. Properties Management */}
+                {/* 3. Site Visits */}
+                <button
+                  onClick={() => {
+                    setActiveTab('siteVisits');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    activeTab === 'siteVisits'
+                      ? 'bg-gold text-white shadow-md'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Calendar className={`w-4 h-4 ${activeTab === 'siteVisits' ? 'text-white' : 'text-gold'}`} />
+                    <span>3. Site Visits</span>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      activeTab === 'siteVisits'
+                        ? 'bg-white text-gold'
+                        : 'bg-white/10 text-gray-300'
+                    }`}
+                  >
+                    {stats.breakdown?.siteVisits || 0}
+                  </span>
+                </button>
+
+                {/* 4. Properties Management */}
                 <button
                   onClick={() => {
                     setActiveTab('properties');
@@ -240,7 +270,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-4 h-4 ${activeTab === 'properties' ? 'text-white' : 'text-gold'}`} />
-                    <span>3. Properties Management</span>
+                    <span>4. Properties Management</span>
                   </div>
 
                   <span
@@ -254,7 +284,7 @@ export const AdminDashboard = () => {
                   </span>
                 </button>
 
-                {/* 4. Settings (User Management) */}
+                {/* 5. Settings (User Management) */}
                 <button
                   onClick={() => {
                     setActiveTab('settings');
@@ -268,7 +298,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-white' : 'text-gold'}`} />
-                    <span>4. Settings & Users</span>
+                    <span>5. Settings & Users</span>
                   </div>
 
                   <span
@@ -369,9 +399,11 @@ export const AdminDashboard = () => {
                 ? '1. Enquiries & Mandates Desk'
                 : activeTab === 'sellRequests'
                 ? '2. Sell Property Requests'
+                : activeTab === 'siteVisits'
+                ? '3. Scheduled Site Inspections'
                 : activeTab === 'properties'
-                ? '3. Properties Portfolio Management'
-                : '4. Settings & Administrator User Management'}
+                ? '4. Properties Portfolio Management'
+                : '5. Settings & Administrator User Management'}
             </h1>
           </div>
 
@@ -401,6 +433,8 @@ export const AdminDashboard = () => {
               <AdminEnquiries />
             ) : activeTab === 'sellRequests' ? (
               <AdminSellRequests />
+            ) : activeTab === 'siteVisits' ? (
+              <AdminSiteVisits />
             ) : activeTab === 'properties' ? (
               <AdminProperties />
             ) : (

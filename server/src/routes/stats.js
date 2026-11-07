@@ -27,7 +27,13 @@ router.get('/dashboard', verifyAdmin, async (req, res) => {
       Property.countDocuments({ status: 'Under Construction' }),
       Enquiry.countDocuments(),
       Enquiry.countDocuments({ status: 'New' }),
-      Enquiry.countDocuments({ type: 'site_visit' }),
+      Enquiry.countDocuments({
+        $or: [
+          { type: 'site_visit' },
+          { status: 'Site Visit' },
+          { preferredDate: { $exists: true, $ne: '' } },
+        ],
+      }),
       SellRequest.countDocuments(),
       Enquiry.countDocuments({ type: 'contact' }),
       Enquiry.find().sort({ createdAt: -1 }).limit(5).populate('propertyId', 'title slug'),

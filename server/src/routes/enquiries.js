@@ -78,12 +78,35 @@ router.post('/', async (req, res) => {
 // GET /api/enquiries - List enquiries (Admin Only)
 router.get('/', verifyAdmin, async (req, res) => {
   try {
-    const { type, status, search, startDate, endDate, assignedTo, temperature, page = 1, limit = 50 } = req.query;
+    const {
+      type,
+      status,
+      siteVisitStatus,
+      isSiteVisit,
+      search,
+      startDate,
+      endDate,
+      assignedTo,
+      temperature,
+      page = 1,
+      limit = 50,
+    } = req.query;
 
     const query = {};
 
-    if (type && type !== 'all') {
+    if (isSiteVisit === 'true') {
+      // Filter any enquiry that has a scheduled site visit (type === 'site_visit' OR status === 'Site Visit' OR has preferredDate)
+      query.$or = [
+        { type: 'site_visit' },
+        { status: 'Site Visit' },
+        { preferredDate: { $exists: true, $ne: '' } },
+      ];
+    } else if (type && type !== 'all') {
       query.type = type;
+    }
+
+    if (siteVisitStatus && siteVisitStatus !== 'all') {
+      query.siteVisitStatus = siteVisitStatus;
     }
 
     if (status && status !== 'all') {
@@ -157,10 +180,24 @@ router.get('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/enquiries/:id - Update status / notes / assigned rep / temperature / lead source (Admin Only)
+// PATCH /api/enquiries/:id - Update status / notes / assigned rep / temperature / lead source / site visit (Admin Only)
 router.patch('/:id', verifyAdmin, async (req, res) => {
   try {
-    const { status, adminNotes, assignedTo, assignedToName, temperature, leadSource, referralName, brokerName } = req.body;
+    const {
+      status,
+      adminNotes,
+      assignedTo,
+      assignedToName,
+      temperature,
+      leadSource,
+      referralName,
+      brokerName,
+      preferredDate,
+      preferredTime,
+      siteVisitStatus,
+      propertyId,
+      propertyTitle,
+    } = req.body;
     const enquiry = await Enquiry.findById(req.params.id);
 
     if (!enquiry) {
@@ -173,6 +210,11 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
     if (leadSource !== undefined) enquiry.leadSource = leadSource;
     if (referralName !== undefined) enquiry.referralName = referralName;
     if (brokerName !== undefined) enquiry.brokerName = brokerName;
+    if (preferredDate !== undefined) enquiry.preferredDate = preferredDate;
+    if (preferredTime !== undefined) enquiry.preferredTime = preferredTime;
+    if (siteVisitStatus !== undefined) enquiry.siteVisitStatus = siteVisitStatus;
+    if (propertyId !== undefined) enquiry.propertyId = propertyId;
+    if (propertyTitle !== undefined) enquiry.propertyTitle = propertyTitle;
     if (assignedTo !== undefined) {
       enquiry.assignedTo = assignedTo || null;
       enquiry.assignedToName = assignedToName || '';

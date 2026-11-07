@@ -48,6 +48,11 @@ const enquirySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    siteVisitStatus: {
+      type: String,
+      enum: ['Scheduled', 'Completed', 'Cancelled', 'No Show', ''],
+      default: 'Scheduled',
+    },
     sellDetails: {
       propertyTitle: { type: String, default: '' },
       propertyType: { type: String, default: '' },
