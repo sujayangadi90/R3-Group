@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 import { AdminEnquiries } from './AdminEnquiries';
+import { AdminSellRequests } from './AdminSellRequests';
 import { AdminProperties } from './AdminProperties';
 import { AdminSettings } from './AdminSettings';
 
@@ -27,7 +28,7 @@ export const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'properties' | 'settings'
+  const [activeTab, setActiveTab] = useState('enquiries'); // 'enquiries' | 'sellRequests' | 'properties' | 'settings'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalProperties: 0,
@@ -151,7 +152,7 @@ export const AdminDashboard = () => {
                     setActiveTab('enquiries');
                     setMobileSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                     activeTab === 'enquiries'
                       ? 'bg-gold text-white shadow-md'
                       : 'text-gray-300 hover:bg-white/5 hover:text-white'
@@ -179,13 +180,41 @@ export const AdminDashboard = () => {
                   )}
                 </button>
 
-                {/* 2. Properties Management */}
+                {/* 2. Sell Property Req */}
+                <button
+                  onClick={() => {
+                    setActiveTab('sellRequests');
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                    activeTab === 'sellRequests'
+                      ? 'bg-gold text-white shadow-md'
+                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className={`w-4 h-4 ${activeTab === 'sellRequests' ? 'text-white' : 'text-gold'}`} />
+                    <span>2. Sell Property Req</span>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      activeTab === 'sellRequests'
+                        ? 'bg-white text-gold'
+                        : 'bg-white/10 text-gray-300'
+                    }`}
+                  >
+                    {stats.breakdown?.sellSubmissions || 0}
+                  </span>
+                </button>
+
+                {/* 3. Properties Management */}
                 <button
                   onClick={() => {
                     setActiveTab('properties');
                     setMobileSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                     activeTab === 'properties'
                       ? 'bg-gold text-white shadow-md'
                       : 'text-gray-300 hover:bg-white/5 hover:text-white'
@@ -193,7 +222,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Building2 className={`w-4 h-4 ${activeTab === 'properties' ? 'text-white' : 'text-gold'}`} />
-                    <span>2. Properties Management</span>
+                    <span>3. Properties Management</span>
                   </div>
 
                   <span
@@ -207,13 +236,13 @@ export const AdminDashboard = () => {
                   </span>
                 </button>
 
-                {/* 3. Settings (User Management) */}
+                {/* 4. Settings (User Management) */}
                 <button
                   onClick={() => {
                     setActiveTab('settings');
                     setMobileSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
                     activeTab === 'settings'
                       ? 'bg-gold text-white shadow-md'
                       : 'text-gray-300 hover:bg-white/5 hover:text-white'
@@ -221,7 +250,7 @@ export const AdminDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Settings className={`w-4 h-4 ${activeTab === 'settings' ? 'text-white' : 'text-gold'}`} />
-                    <span>3. Settings & Users</span>
+                    <span>4. Settings & Users</span>
                   </div>
 
                   <span
@@ -320,9 +349,11 @@ export const AdminDashboard = () => {
             <h1 className="text-xl font-extrabold text-primary tracking-tight">
               {activeTab === 'enquiries'
                 ? '1. Enquiries & Mandates Desk'
+                : activeTab === 'sellRequests'
+                ? '2. Sell Property Requests'
                 : activeTab === 'properties'
-                ? '2. Properties Portfolio Management'
-                : '3. Settings & Administrator User Management'}
+                ? '3. Properties Portfolio Management'
+                : '4. Settings & Administrator User Management'}
             </h1>
           </div>
 
@@ -350,6 +381,8 @@ export const AdminDashboard = () => {
           <div>
             {activeTab === 'enquiries' ? (
               <AdminEnquiries />
+            ) : activeTab === 'sellRequests' ? (
+              <AdminSellRequests />
             ) : activeTab === 'properties' ? (
               <AdminProperties />
             ) : (
