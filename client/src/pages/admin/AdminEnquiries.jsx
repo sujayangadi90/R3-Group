@@ -388,6 +388,10 @@ export const AdminEnquiries = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!isSuperAdmin) {
+      alert('Access restricted: Only Super Admins can delete lead dossiers.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to permanently delete this lead record?')) return;
     try {
       const res = await api.deleteEnquiry(id);
@@ -398,7 +402,7 @@ export const AdminEnquiries = () => {
         }
       }
     } catch (err) {
-      alert('Failed to delete lead record.');
+      alert(err.message || 'Failed to delete lead record.');
     }
   };
 
@@ -1007,13 +1011,15 @@ export const AdminEnquiries = () => {
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="p-1.5 rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors"
-                        title="Delete Lead"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="p-1.5 rounded-lg border border-gray-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors"
+                          title="Delete Lead (Super Admin Only)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -1438,12 +1444,14 @@ export const AdminEnquiries = () => {
                 Received: {new Date(selectedEnquiry.createdAt).toLocaleString()}
               </span>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleDelete(selectedEnquiry._id)}
-                  className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete Lead
-                </button>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => handleDelete(selectedEnquiry._id)}
+                    className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete Lead
+                  </button>
+                )}
                 <button
                   onClick={() => setSelectedEnquiry(null)}
                   className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-black transition-colors"

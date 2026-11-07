@@ -21,3 +21,23 @@ export const verifyAdmin = (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid or expired authentication token.' });
   }
 };
+
+export const verifySuperAdmin = (req, res, next) => {
+  verifyAdmin(req, res, () => {
+    const userRole = req.user?.userRole;
+    const username = (req.user?.username || '').toLowerCase();
+    const isSuperAdmin =
+      userRole === 'Super Admin' ||
+      username === 'admin' ||
+      username === (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
+
+    if (!isSuperAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Super Admin privileges required for this action.',
+      });
+    }
+
+    next();
+  });
+};

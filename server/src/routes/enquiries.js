@@ -1,7 +1,7 @@
 import express from 'express';
 import Enquiry from '../models/Enquiry.js';
 import Property from '../models/Property.js';
-import { verifyAdmin } from '../middleware/auth.js';
+import { verifyAdmin, verifySuperAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -232,8 +232,8 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// DELETE /api/enquiries/:id - Delete enquiry (Admin Only)
-router.delete('/:id', verifyAdmin, async (req, res) => {
+// DELETE /api/enquiries/:id - Delete enquiry (Super Admin Only)
+router.delete('/:id', verifySuperAdmin, async (req, res) => {
   try {
     const deleted = await Enquiry.findByIdAndDelete(req.params.id);
     if (!deleted) {
