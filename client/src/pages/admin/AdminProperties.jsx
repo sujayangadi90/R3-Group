@@ -24,6 +24,51 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 
+// Default fallback locations matching seed data in case API is loading or network is offline
+const DEFAULT_LOCATIONS = [
+  {
+    name: 'Mumbai',
+    localities: [
+      { name: 'Worli & Sea Face' },
+      { name: 'Altamount Road' },
+      { name: 'Bandra West & Pali Hill' },
+      { name: 'Nariman Point & Marine Drive' },
+      { name: 'Cuffe Parade & Colaba' },
+      { name: 'Lower Parel' },
+      { name: 'Juhu' },
+      { name: 'Malabar Hill' },
+      { name: 'BKC (Bandra Kurla Complex)' },
+    ],
+  },
+  {
+    name: 'Alibaug',
+    localities: [
+      { name: 'Mandwa & Awas' },
+      { name: 'Zirad' },
+      { name: 'Kihim' },
+      { name: 'Varsoli' },
+    ],
+  },
+  {
+    name: 'Lonavala & Khandala',
+    localities: [
+      { name: 'Tungarli' },
+      { name: 'Valvan' },
+      { name: 'Kune Village' },
+      { name: 'Gold Valley' },
+    ],
+  },
+  {
+    name: 'Goa',
+    localities: [
+      { name: 'Assagao' },
+      { name: 'Anjuna & Vagator' },
+      { name: 'Candolim' },
+      { name: 'Siolim' },
+    ],
+  },
+];
+
 export const AdminProperties = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,13 +94,13 @@ export const AdminProperties = () => {
   const fileInputRef = useRef(null);
 
   // Dynamic Locations Master State
-  const [locationMaster, setLocationMaster] = useState([]);
+  const [locationMaster, setLocationMaster] = useState(DEFAULT_LOCATIONS);
 
   useEffect(() => {
     const fetchLocs = async () => {
       try {
         const res = await api.getLocations();
-        if (res.success && res.data) {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
           setLocationMaster(res.data);
         }
       } catch (err) {
@@ -730,55 +775,85 @@ export const AdminProperties = () => {
               {/* City, Location/Locality, Address */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    City *
-                  </label>
-                  <div className="space-y-1">
-                    <input
-                      list="admin-cities-list"
-                      type="text"
-                      required
-                      placeholder="e.g. Mumbai"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                    />
-                    <datalist id="admin-cities-list">
-                      {locationMaster.map((c) => (
-                        <option key={c._id || c.name} value={c.name} />
-                      ))}
-                    </datalist>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-charcoal-700 uppercase">
+                      City *
+                    </label>
                   </div>
+                  <select
+                    required
+                    value={formData.city}
+                    onChange={(e) => {
+                      const newCity = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        city: newCity,
+                        // reset location if not belonging to new city
+                        location: '',
+                      }));
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>Select City</option>
+                    {locationMaster.map((c) => (
+                      <option key={c._id || c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
                     Locality / Location Area *
                   </label>
-                  <div className="space-y-1">
-                    <input
-                      list="admin-localities-list"
-                      type="text"
-                      required
-                      placeholder="e.g. Worli Sea Face"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                    />
-                    <datalist id="admin-localities-list">
-                      {(() => {
-                        const matchedCity = locationMaster.find(
-                          (c) => c.name.toLowerCase() === (formData.city || '').toLowerCase()
-                        );
-                        const locs = matchedCity
-                          ? (matchedCity.localities || []).map((l) => l.name)
-                          : locationMaster.flatMap((c) => (c.localities || []).map((l) => l.name));
-                        return [...new Set(locs)].map((loc) => (
-                          <option key={loc} value={loc} />
-                        ));
-                      })()}
-                    </datalist>
-                  </div>
+                  {(() => {
+                    const matchedCity = locationMaster.find(
+                      (c) => c.name.toLowerCase() === (formData.city || '').toLowerCase()
+                    );
+                    const cityLocs = (matchedCity?.localities || [])
+                      .filter((l) => l.isActive !== false)
+                      .map((l) => l.name);
+
+                    if (cityLocs.length > 0) {
+                      return (
+                        <select
+                          required
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary"
+                        >
+                          <option value="">Select Locality</option>
+                          {cityLocs.map((loc) => (
+                            <option key={loc} value={loc}>
+                              {loc}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-1">
+                        <input
+                          list="admin-localities-list"
+                          type="text"
+                          required
+                          placeholder="e.g. Worli Sea Face"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                        />
+                        <datalist id="admin-localities-list">
+                          {locationMaster
+                            .flatMap((c) => (c.localities || []).map((l) => l.name))
+                            .map((loc) => (
+                              <option key={loc} value={loc} />
+                            ))}
+                        </datalist>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div>
