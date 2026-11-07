@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, Building2, ShieldCheck, Phone, PlusCircle, UserCircle, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Navbar = () => {
@@ -74,38 +74,8 @@ export const Navbar = () => {
             ))}
           </nav>
 
-          {/* Actions Desk */}
-          <div className="hidden sm:flex items-center gap-4">
-            <Link
-              to="/sell"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gold hover:bg-gold-dark text-white font-semibold text-sm tracking-wide shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>List Your Property</span>
-            </Link>
-
-            <Link
-              to="/admin"
-              className={`p-2.5 rounded-lg border transition-colors flex items-center justify-center ${
-                isAuthenticated
-                  ? 'border-gold text-gold bg-gold-subtle hover:bg-gold/20'
-                  : 'border-charcoal-500/20 text-charcoal-600 hover:text-primary hover:border-primary'
-              }`}
-              title={isAuthenticated ? 'Admin Dashboard' : 'Admin Portal Login'}
-            >
-              <UserCircle className="w-5 h-5" />
-            </Link>
-          </div>
-
           {/* Mobile Menu Button */}
-          <div className="flex items-center gap-2 sm:hidden">
-            <Link
-              to="/admin"
-              className="p-2 text-charcoal-600 hover:text-primary"
-              title="Admin Portal"
-            >
-              <UserCircle className="w-6 h-6" />
-            </Link>
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-charcoal-800 hover:text-gold transition-colors focus:outline-none"
@@ -135,16 +105,6 @@ export const Navbar = () => {
                 <ArrowRight className="w-4 h-4 text-charcoal-500" />
               </Link>
             ))}
-
-            <div className="pt-3">
-              <Link
-                to="/sell"
-                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg bg-gold text-white font-semibold text-sm shadow-md"
-              >
-                <PlusCircle className="w-4 h-4" />
-                List Your Property
-              </Link>
-            </div>
           </nav>
         </div>
       )}
