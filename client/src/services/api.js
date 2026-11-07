@@ -182,4 +182,94 @@ export const api = {
     });
     return res.json();
   },
+
+  // Location Master (Cities & Localities)
+  async getLocations(all = false) {
+    const res = await fetch(`${API_BASE}/locations${all ? '?all=true' : ''}`);
+    return res.json();
+  },
+
+  async createCity(data) {
+    const res = await fetch(`${API_BASE}/locations`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async updateCity(id, data) {
+    const res = await fetch(`${API_BASE}/locations/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async deleteCity(id) {
+    const res = await fetch(`${API_BASE}/locations/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
+
+  async addLocality(cityId, data) {
+    const res = await fetch(`${API_BASE}/locations/${cityId}/localities`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async updateLocality(cityId, localityId, data) {
+    const res = await fetch(`${API_BASE}/locations/${cityId}/localities/${localityId}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async deleteLocality(cityId, localityId) {
+    const res = await fetch(`${API_BASE}/locations/${cityId}/localities/${localityId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
+
+  // Lead Sources Master
+  async getLeadSources(all = false) {
+    const res = await fetch(`${API_BASE}/lead-sources${all ? '?all=true' : ''}`);
+    return res.json();
+  },
+
+  async createLeadSource(data) {
+    const res = await fetch(`${API_BASE}/lead-sources`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async updateLeadSource(id, data) {
+    const res = await fetch(`${API_BASE}/lead-sources/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  async deleteLeadSource(id) {
+    const res = await fetch(`${API_BASE}/lead-sources/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    return res.json();
+  },
 };

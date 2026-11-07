@@ -33,6 +33,7 @@ export const AdminEnquiries = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
   const [propertiesList, setPropertiesList] = useState([]);
+  const [leadSourcesList, setLeadSourcesList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -55,6 +56,7 @@ export const AdminEnquiries = () => {
     email: '',
     propertyId: '',
     propertyTitle: '',
+    leadSource: '',
     message: '',
     status: 'New',
     temperature: 'Warm',
@@ -105,19 +107,23 @@ export const AdminEnquiries = () => {
     return { startDate: '', endDate: '' };
   };
 
-  // Fetch users & properties for assignment and selection
+  // Fetch users, properties & lead sources for assignment and selection
   useEffect(() => {
     const fetchAuxData = async () => {
       try {
-        const [usersRes, propsRes] = await Promise.all([
+        const [usersRes, propsRes, leadSourcesRes] = await Promise.all([
           api.getUsers(),
           api.getProperties({ limit: 100 }),
+          api.getLeadSources(),
         ]);
         if (usersRes.success && usersRes.data) {
           setAdminUsers(usersRes.data);
         }
         if (propsRes.success && propsRes.data) {
           setPropertiesList(propsRes.data);
+        }
+        if (leadSourcesRes.success && leadSourcesRes.data) {
+          setLeadSourcesList(leadSourcesRes.data);
         }
       } catch (err) {
         console.error('Failed to load auxiliary admin data:', err);
@@ -268,6 +274,7 @@ export const AdminEnquiries = () => {
       email: (newEnquiryData.email || '').trim(),
       propertyId: newEnquiryData.propertyId || null,
       propertyTitle: selectedProp ? selectedProp.title : (newEnquiryData.propertyTitle || ''),
+      leadSource: newEnquiryData.leadSource || '',
       message: newEnquiryData.message || '',
       status: newEnquiryData.status || 'New',
       temperature: newEnquiryData.temperature || 'Warm',
@@ -341,12 +348,13 @@ export const AdminEnquiries = () => {
       return;
     }
     if (enquiries.length === 0) return;
-    const headers = ['Type', 'Client Name', 'Phone', 'Email', 'Property / Subject', 'Status', 'Date Submitted'];
+    const headers = ['Type', 'Client Name', 'Phone', 'Email', 'Lead Source', 'Property / Subject', 'Status', 'Date Submitted'];
     const rows = enquiries.map((e) => [
       e.type,
       `"${e.name}"`,
       `"${e.phone}"`,
       `"${e.email}"`,
+      `"${e.leadSource || 'Direct / Website'}"`,
       `"${e.propertyTitle || e.subject || ''}"`,
       e.status,
       new Date(e.createdAt).toLocaleDateString(),
@@ -809,7 +817,14 @@ export const AdminEnquiries = () => {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getTypeBadge(item.type)}
+                      <div>
+                        {getTypeBadge(item.type)}
+                        {item.leadSource && (
+                          <span className="block mt-1 text-[10px] font-semibold text-charcoal-500">
+                            via {item.leadSource}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-primary">{item.name}</div>
@@ -1038,6 +1053,42 @@ export const AdminEnquiries = () => {
                 </div>
               </div>
 
+              {/* Lead Source Selector / Display in Drawer */}
+              <div className="p-3.5 rounded-xl bg-surface-warm border border-gray-200 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                    Lead Source Channel:
+                  </span>
+                </div>
+                <select
+                  value={selectedEnquiry.leadSource || ''}
+                  onChange={async (e) => {
+                    const newSource = e.target.value;
+                    try {
+                      const res = await api.updateEnquiry(selectedEnquiry._id, { leadSource: newSource });
+                      if (res.success) {
+                        setSelectedEnquiry({ ...selectedEnquiry, leadSource: newSource });
+                        setEnquiries((prev) =>
+                          prev.map((item) =>
+                            item._id === selectedEnquiry._id ? { ...item, leadSource: newSource } : item
+                          )
+                        );
+                      }
+                    } catch (err) {
+                      console.error('Failed to update lead source:', err);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
+                >
+                  <option value="">Select / Update Source...</option>
+                  {leadSourcesList.map((src) => (
+                    <option key={src._id || src.name} value={src.name}>
+                      {src.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Client Contact Info */}
               <div className="p-4 rounded-xl bg-surface-warm border border-gray-200 space-y-2.5">
                 <h4 className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -1249,31 +1300,51 @@ export const AdminEnquiries = () => {
                 </div>
               </div>
 
-              {/* Property Interested In (Dropdown) */}
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                  Property Interested In
-                </label>
-                <select
-                  value={newEnquiryData.propertyId}
-                  onChange={(e) => {
-                    const pid = e.target.value;
-                    const p = propertiesList.find((item) => item._id === pid);
-                    setNewEnquiryData({
-                      ...newEnquiryData,
-                      propertyId: pid,
-                      propertyTitle: p ? p.title : '',
-                    });
-                  }}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary cursor-pointer font-medium"
-                >
-                  <option value="">General Luxury Advisory (No specific property)</option>
-                  {propertiesList.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.title} ({p.propertyType} - {p.location})
-                    </option>
-                  ))}
-                </select>
+              {/* Property Interested In (Dropdown) & Lead Source */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Property Interested In
+                  </label>
+                  <select
+                    value={newEnquiryData.propertyId}
+                    onChange={(e) => {
+                      const pid = e.target.value;
+                      const p = propertiesList.find((item) => item._id === pid);
+                      setNewEnquiryData({
+                        ...newEnquiryData,
+                        propertyId: pid,
+                        propertyTitle: p ? p.title : '',
+                      });
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary cursor-pointer font-medium"
+                  >
+                    <option value="">General Luxury Advisory</option>
+                    {propertiesList.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.title} ({p.propertyType} - {p.location})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                    Lead Source <span className="text-gold font-bold">*</span>
+                  </label>
+                  <select
+                    value={newEnquiryData.leadSource}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, leadSource: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary cursor-pointer font-medium"
+                  >
+                    <option value="">Select Lead Source...</option>
+                    {leadSourcesList.map((src) => (
+                      <option key={src._id || src.name} value={src.name}>
+                        {src.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* Status, Temperature & Assigned Rep */}

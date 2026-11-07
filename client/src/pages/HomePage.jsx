@@ -27,9 +27,44 @@ export const HomePage = () => {
   const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState(null);
 
   // Search filter bar states
-  const [searchLocation, setSearchLocation] = useState('All');
+  const [citiesData, setCitiesData] = useState([]);
+  const [selectedCity, setSelectedCity] = useState('All');
+  const [selectedLocality, setSelectedLocality] = useState('All');
   const [searchType, setSearchType] = useState('All');
-  const [searchBedrooms, setSearchBedrooms] = useState('All');
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await api.getLocations();
+        if (res.success && res.data) {
+          setCitiesData(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load locations:', err);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Compute available localities for selected city
+  const availableLocalities = React.useMemo(() => {
+    if (selectedCity === 'All') {
+      // Gather all unique active localities across all cities
+      const allLocs = [];
+      citiesData.forEach((c) => {
+        (c.localities || []).forEach((l) => {
+          if (l.isActive !== false && !allLocs.includes(l.name)) {
+            allLocs.push(l.name);
+          }
+        });
+      });
+      return allLocs;
+    }
+    const targetCity = citiesData.find((c) => c.name.toLowerCase() === selectedCity.toLowerCase());
+    return targetCity
+      ? (targetCity.localities || []).filter((l) => l.isActive !== false).map((l) => l.name)
+      : [];
+  }, [citiesData, selectedCity]);
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -50,9 +85,9 @@ export const HomePage = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const query = new URLSearchParams();
-    if (searchLocation !== 'All') query.append('location', searchLocation);
+    if (selectedCity !== 'All') query.append('city', selectedCity);
+    if (selectedLocality !== 'All') query.append('locality', selectedLocality);
     if (searchType !== 'All') query.append('type', searchType);
-    if (searchBedrooms !== 'All') query.append('bedrooms', searchBedrooms);
     navigate(`/properties?${query.toString()}`);
   };
 
@@ -121,35 +156,62 @@ export const HomePage = () => {
             Unrivaled private advisory, discreet acquisitions, and trophy estates across South Mumbai, coastal enclaves, and premier financial corridors.
           </p>
 
-          {/* Search Filter Box */}
+          {/* Search Filter Box: City, Locality, Property Type */}
           <form
             onSubmit={handleSearchSubmit}
             className="w-full max-w-4xl mt-10 p-3 md:p-4 rounded-2xl bg-white/95 backdrop-blur-md shadow-2xl border border-white/20 text-left grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
           >
-            {/* Location Filter */}
+            {/* City Filter */}
             <div className="px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-200">
               <label className="block text-[11px] font-bold text-charcoal-500 uppercase tracking-wider mb-1">
-                Location
+                City
               </label>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-gold shrink-0" />
                 <select
-                  value={searchLocation}
-                  onChange={(e) => setSearchLocation(e.target.value)}
+                  value={selectedCity}
+                  onChange={(e) => {
+                    setSelectedCity(e.target.value);
+                    setSelectedLocality('All');
+                  }}
                   className="w-full bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer"
                 >
-                  <option value="All">All South & Coastal</option>
-                  <option value="Worli">Worli & Sea Face</option>
-                  <option value="Altamount">Altamount Road</option>
-                  <option value="Bandra">Bandra & Pali Hill</option>
-                  <option value="Nariman Point">Nariman Point</option>
-                  <option value="Alibaug">Alibaug & Coast</option>
+                  <option value="All">All Cities</option>
+                  {citiesData.map((c) => (
+                    <option key={c._id || c.name} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Locality Filter */}
+            <div className="px-3 py-2 border-b sm:border-b-0 lg:border-r border-gray-200">
+              <label className="block text-[11px] font-bold text-charcoal-500 uppercase tracking-wider mb-1">
+                Locality
+              </label>
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-gold shrink-0" />
+                <select
+                  value={selectedLocality}
+                  onChange={(e) => setSelectedLocality(e.target.value)}
+                  className="w-full bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer"
+                >
+                  <option value="All">
+                    {selectedCity === 'All' ? 'All Localities' : `All in ${selectedCity}`}
+                  </option>
+                  {availableLocalities.map((loc) => (
+                    <option key={loc} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             {/* Property Type Filter */}
-            <div className="px-3 py-2 border-b sm:border-b-0 lg:border-r border-gray-200">
+            <div className="px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-200">
               <label className="block text-[11px] font-bold text-charcoal-500 uppercase tracking-wider mb-1">
                 Property Type
               </label>
@@ -170,31 +232,11 @@ export const HomePage = () => {
               </div>
             </div>
 
-            {/* Bedrooms Filter */}
-            <div className="px-3 py-2 border-b sm:border-b-0 sm:border-r border-gray-200">
-              <label className="block text-[11px] font-bold text-charcoal-500 uppercase tracking-wider mb-1">
-                Bedrooms
-              </label>
-              <div className="flex items-center gap-2">
-                <HomeIcon className="w-4 h-4 text-gold shrink-0" />
-                <select
-                  value={searchBedrooms}
-                  onChange={(e) => setSearchBedrooms(e.target.value)}
-                  className="w-full bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer"
-                >
-                  <option value="All">Any Configurations</option>
-                  <option value="3">3 BHK Suites</option>
-                  <option value="4">4 BHK Residences</option>
-                  <option value="5+">5+ BHK Mansions</option>
-                </select>
-              </div>
-            </div>
-
             {/* Search Button */}
             <div className="flex items-center justify-center p-1">
               <button
                 type="submit"
-                className="w-full h-full min-h-[46px] rounded-xl bg-gold hover:bg-gold-dark text-white font-bold text-sm tracking-wide shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full h-full min-h-[46px] rounded-xl bg-gold hover:bg-gold-dark text-white font-bold text-sm tracking-wide shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Search className="w-4 h-4" />
                 <span>Search Portfolio</span>

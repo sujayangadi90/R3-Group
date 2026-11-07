@@ -48,6 +48,23 @@ export const AdminProperties = () => {
   const [manualUrlInput, setManualUrlInput] = useState('');
   const fileInputRef = useRef(null);
 
+  // Dynamic Locations Master State
+  const [locationMaster, setLocationMaster] = useState([]);
+
+  useEffect(() => {
+    const fetchLocs = async () => {
+      try {
+        const res = await api.getLocations();
+        if (res.success && res.data) {
+          setLocationMaster(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load locations in AdminProperties:', err);
+      }
+    };
+    fetchLocs();
+  }, []);
+
   // Form Fields
   const initialForm = {
     title: '',
@@ -710,33 +727,58 @@ export const AdminProperties = () => {
                 </div>
               </div>
 
-              {/* Location, City, Address */}
+              {/* City, Location/Locality, Address */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Location Area *
+                    City *
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Worli Sea Face"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      list="admin-cities-list"
+                      type="text"
+                      required
+                      placeholder="e.g. Mumbai"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                    />
+                    <datalist id="admin-cities-list">
+                      {locationMaster.map((c) => (
+                        <option key={c._id || c.name} value={c.name} />
+                      ))}
+                    </datalist>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    City
+                    Locality / Location Area *
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Mumbai"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
+                  <div className="space-y-1">
+                    <input
+                      list="admin-localities-list"
+                      type="text"
+                      required
+                      placeholder="e.g. Worli Sea Face"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                    />
+                    <datalist id="admin-localities-list">
+                      {(() => {
+                        const matchedCity = locationMaster.find(
+                          (c) => c.name.toLowerCase() === (formData.city || '').toLowerCase()
+                        );
+                        const locs = matchedCity
+                          ? (matchedCity.localities || []).map((l) => l.name)
+                          : locationMaster.flatMap((c) => (c.localities || []).map((l) => l.name));
+                        return [...new Set(locs)].map((loc) => (
+                          <option key={loc} value={loc} />
+                        ));
+                      })()}
+                    </datalist>
+                  </div>
                 </div>
 
                 <div>

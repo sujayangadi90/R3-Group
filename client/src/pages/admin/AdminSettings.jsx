@@ -15,12 +15,17 @@ import {
   Clock,
   Sparkles,
   CheckCircle2,
+  MapPin,
+  Share2,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { LocationMasterSettings } from './LocationMasterSettings';
+import { LeadSourcesMasterSettings } from './LeadSourcesMasterSettings';
 
 export const AdminSettings = () => {
   const { user: currentUser } = useAuth();
+  const [activeSubTab, setActiveSubTab] = useState('leadSources'); // 'leadSources' | 'locations' | 'users'
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -203,39 +208,84 @@ export const AdminSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Success Notification */}
-      {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between animate-in fade-in duration-200">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>{successMsg}</span>
-          </div>
-          <button onClick={() => setSuccessMsg('')} className="text-emerald-600 hover:text-emerald-900">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Header Block & Action Toolbar */}
-      <div className="bg-white p-6 rounded-2xl border border-[#ECECE8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-gold" />
-            <h2 className="text-base font-bold text-primary">Administrator User Management</h2>
-          </div>
-          <p className="text-xs text-charcoal-500 mt-1">
-            Grant, manage, or revoke access credentials for managing the R3 Group real estate portal.
-          </p>
-        </div>
+      {/* Settings Navigation Tabs */}
+      <div className="flex items-center gap-3 border-b border-gray-200 pb-2 flex-wrap">
+        <button
+          onClick={() => setActiveSubTab('leadSources')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSubTab === 'leadSources'
+              ? 'bg-gold text-white shadow-sm'
+              : 'text-charcoal-600 hover:bg-gray-100 hover:text-primary'
+          }`}
+        >
+          <Share2 className="w-4 h-4" />
+          <span>Lead Sources Master</span>
+        </button>
 
         <button
-          onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-dark text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto"
+          onClick={() => setActiveSubTab('locations')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSubTab === 'locations'
+              ? 'bg-gold text-white shadow-sm'
+              : 'text-charcoal-600 hover:bg-gray-100 hover:text-primary'
+          }`}
         >
-          <UserPlus className="w-4 h-4" />
-          <span>Add New Admin User</span>
+          <MapPin className="w-4 h-4" />
+          <span>Cities & Localities Master</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('users')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeSubTab === 'users'
+              ? 'bg-gold text-white shadow-sm'
+              : 'text-charcoal-600 hover:bg-gray-100 hover:text-primary'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Admin Users & Access</span>
         </button>
       </div>
+
+      {activeSubTab === 'leadSources' ? (
+        <LeadSourcesMasterSettings />
+      ) : activeSubTab === 'locations' ? (
+        <LocationMasterSettings />
+      ) : (
+        <>
+          {/* Success Notification */}
+          {successMsg && (
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between animate-in fade-in duration-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{successMsg}</span>
+              </div>
+              <button onClick={() => setSuccessMsg('')} className="text-emerald-600 hover:text-emerald-900">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Header Block & Action Toolbar */}
+          <div className="bg-white p-6 rounded-2xl border border-[#ECECE8] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-gold" />
+                <h2 className="text-base font-bold text-primary">Administrator User Management</h2>
+              </div>
+              <p className="text-xs text-charcoal-500 mt-1">
+                Grant, manage, or revoke access credentials for managing the R3 Group real estate portal.
+              </p>
+            </div>
+
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-dark text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Add New Admin User</span>
+            </button>
+          </div>
 
       {/* Users Table */}
       <div className="bg-white rounded-2xl border border-[#ECECE8] shadow-sm overflow-hidden">
@@ -611,6 +661,8 @@ export const AdminSettings = () => {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

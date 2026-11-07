@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
       status,
       bedrooms,
       location,
+      locality,
       city,
       featured,
       search,
@@ -63,8 +64,9 @@ router.get('/', async (req, res) => {
       }
     }
 
-    if (location && location !== 'All') {
-      query.location = { $regex: location, $options: 'i' };
+    const activeLocality = locality || location;
+    if (activeLocality && activeLocality !== 'All') {
+      query.location = { $regex: activeLocality, $options: 'i' };
     }
 
     if (city && city !== 'All') {

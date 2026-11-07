@@ -12,19 +12,57 @@ export const PropertiesPage = () => {
   const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState(null);
 
   // Filters state
+  const [citiesData, setCitiesData] = useState([]);
+  const [city, setCity] = useState(searchParams.get('city') || 'All');
+  const [locality, setLocality] = useState(
+    searchParams.get('locality') || searchParams.get('location') || 'All'
+  );
   const [type, setType] = useState(searchParams.get('type') || 'All');
-  const [location, setLocation] = useState(searchParams.get('location') || 'All');
   const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || 'All');
   const [status, setStatus] = useState(searchParams.get('status') || 'All');
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [sort, setSort] = useState('newest');
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await api.getLocations();
+        if (res.success && res.data) {
+          setCitiesData(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load locations in properties page:', err);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Compute available localities for selected city
+  const availableLocalities = React.useMemo(() => {
+    if (city === 'All') {
+      const allLocs = [];
+      citiesData.forEach((c) => {
+        (c.localities || []).forEach((l) => {
+          if (l.isActive !== false && !allLocs.includes(l.name)) {
+            allLocs.push(l.name);
+          }
+        });
+      });
+      return allLocs;
+    }
+    const targetCity = citiesData.find((c) => c.name.toLowerCase() === city.toLowerCase());
+    return targetCity
+      ? (targetCity.localities || []).filter((l) => l.isActive !== false).map((l) => l.name)
+      : [];
+  }, [citiesData, city]);
 
   const fetchProperties = async () => {
     setLoading(true);
     try {
       const res = await api.getProperties({
         type,
-        location,
+        city,
+        locality,
         bedrooms,
         status,
         search,
@@ -42,7 +80,7 @@ export const PropertiesPage = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, [type, location, bedrooms, status, sort]);
+  }, [type, city, locality, bedrooms, status, sort]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -50,8 +88,9 @@ export const PropertiesPage = () => {
   };
 
   const handleResetFilters = () => {
+    setCity('All');
+    setLocality('All');
     setType('All');
-    setLocation('All');
     setBedrooms('All');
     setStatus('All');
     setSearch('');
@@ -127,6 +166,45 @@ export const PropertiesPage = () => {
 
           {/* Quick Filter Pills */}
           <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3">
+            {/* City selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-charcoal-500">City:</span>
+              <select
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value);
+                  setLocality('All');
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-primary bg-surface-warm focus:outline-none"
+              >
+                <option value="All">All Cities</option>
+                {citiesData.map((c) => (
+                  <option key={c._id || c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Locality selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-charcoal-500">Locality:</span>
+              <select
+                value={locality}
+                onChange={(e) => setLocality(e.target.value)}
+                className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-primary bg-surface-warm focus:outline-none"
+              >
+                <option value="All">
+                  {city === 'All' ? 'All Localities' : `All in ${city}`}
+                </option>
+                {availableLocalities.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Type selector */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-medium text-charcoal-500">Type:</span>
@@ -175,7 +253,7 @@ export const PropertiesPage = () => {
             </div>
 
             {/* Reset Button */}
-            {(type !== 'All' || bedrooms !== 'All' || status !== 'All' || search !== '') && (
+            {(city !== 'All' || locality !== 'All' || type !== 'All' || bedrooms !== 'All' || status !== 'All' || search !== '') && (
               <button
                 onClick={handleResetFilters}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors ml-auto"

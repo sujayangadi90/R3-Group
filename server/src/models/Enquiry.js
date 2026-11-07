@@ -76,6 +76,11 @@ const enquirySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    leadSource: {
+      type: String,
+      default: '', // e.g. "Google Search", "Phone Call", "Walk-in", "Referral", etc.
+      trim: true,
+    },
     adminNotes: {
       type: String,
       default: '',
