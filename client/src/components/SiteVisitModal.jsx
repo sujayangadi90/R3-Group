@@ -19,6 +19,10 @@ export const SiteVisitModal = ({ property, isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.phone.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -131,10 +135,16 @@ export const SiteVisitModal = ({ property, isOpen, onClose }) => {
                   </label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    maxLength={10}
                     required
-                    placeholder="+91 98200 12345"
+                    placeholder="10-digit mobile number"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: val });
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-gold"
                   />
                 </div>

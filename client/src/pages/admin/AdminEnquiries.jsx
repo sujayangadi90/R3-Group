@@ -266,6 +266,12 @@ export const AdminEnquiries = () => {
       return;
     }
 
+    if (newEnquiryData.phone.trim().length !== 10) {
+      setAddFormError('Please enter a valid 10-digit phone number.');
+      setAddFormLoading(false);
+      return;
+    }
+
     const selectedProp = propertiesList.find((p) => p._id === newEnquiryData.propertyId);
     const assignedUser = adminUsers.find((u) => u._id === newEnquiryData.assignedTo);
 
@@ -1365,10 +1371,16 @@ export const AdminEnquiries = () => {
                   </label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    maxLength={10}
                     required
-                    placeholder="+91 98201 44552"
+                    placeholder="10-digit mobile number"
                     value={newEnquiryData.phone}
-                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setNewEnquiryData({ ...newEnquiryData, phone: val });
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
                   />
                 </div>

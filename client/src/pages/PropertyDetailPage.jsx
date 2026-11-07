@@ -60,6 +60,10 @@ export const PropertyDetailPage = () => {
 
   const handleEnquirySubmit = async (e) => {
     e.preventDefault();
+    if (formData.phone.length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile number.');
+      return;
+    }
     setSubmitting(true);
     setErrorMsg('');
     try {
@@ -410,10 +414,16 @@ export const PropertyDetailPage = () => {
                     </label>
                     <input
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
                       required
-                      placeholder="+91 98201 44552"
+                      placeholder="10-digit mobile number"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setFormData({ ...formData, phone: val });
+                      }}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-gold"
                     />
                   </div>
