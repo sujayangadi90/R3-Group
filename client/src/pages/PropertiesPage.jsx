@@ -3,13 +3,13 @@ import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, RotateCcw, Building2, MapPin, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
 import { PropertyCard } from '../components/PropertyCard';
-import { SiteVisitModal } from '../components/SiteVisitModal';
+import { PropertyEnquiryModal } from '../components/PropertyEnquiryModal';
 
 export const PropertiesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState(null);
+  const [selectedPropertyForEnquiry, setSelectedPropertyForEnquiry] = useState(null);
 
   // Filters state
   const [citiesData, setCitiesData] = useState([]);
@@ -297,18 +297,18 @@ export const PropertiesPage = () => {
               <PropertyCard
                 key={property._id}
                 property={property}
-                onBookVisit={(prop) => setSelectedPropertyForVisit(prop)}
+                onEnquire={(prop) => setSelectedPropertyForEnquiry(prop)}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Site Visit Modal */}
-      <SiteVisitModal
-        property={selectedPropertyForVisit}
-        isOpen={!!selectedPropertyForVisit}
-        onClose={() => setSelectedPropertyForVisit(null)}
+      {/* Property Enquiry Modal */}
+      <PropertyEnquiryModal
+        property={selectedPropertyForEnquiry}
+        isOpen={!!selectedPropertyForEnquiry}
+        onClose={() => setSelectedPropertyForEnquiry(null)}
       />
     </main>
   );

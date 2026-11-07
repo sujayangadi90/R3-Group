@@ -18,13 +18,13 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { PropertyCard } from '../components/PropertyCard';
-import { SiteVisitModal } from '../components/SiteVisitModal';
+import { PropertyEnquiryModal } from '../components/PropertyEnquiryModal';
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPropertyForVisit, setSelectedPropertyForVisit] = useState(null);
+  const [selectedPropertyForEnquiry, setSelectedPropertyForEnquiry] = useState(null);
 
   // Search filter bar states
   const [citiesData, setCitiesData] = useState([]);
@@ -328,7 +328,7 @@ export const HomePage = () => {
                 <PropertyCard
                   key={property._id}
                   property={property}
-                  onBookVisit={(prop) => setSelectedPropertyForVisit(prop)}
+                  onEnquire={(prop) => setSelectedPropertyForEnquiry(prop)}
                 />
               ))}
             </div>
@@ -473,11 +473,11 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Site Visit Modal */}
-      <SiteVisitModal
-        property={selectedPropertyForVisit}
-        isOpen={!!selectedPropertyForVisit}
-        onClose={() => setSelectedPropertyForVisit(null)}
+      {/* Property Enquiry Modal */}
+      <PropertyEnquiryModal
+        property={selectedPropertyForEnquiry}
+        isOpen={!!selectedPropertyForEnquiry}
+        onClose={() => setSelectedPropertyForEnquiry(null)}
       />
     </main>
   );
