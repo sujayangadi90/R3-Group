@@ -57,6 +57,8 @@ export const AdminEnquiries = () => {
     propertyId: '',
     propertyTitle: '',
     leadSource: '',
+    referralName: '',
+    brokerName: '',
     message: '',
     status: 'New',
     temperature: 'Warm',
@@ -267,6 +269,11 @@ export const AdminEnquiries = () => {
     const selectedProp = propertiesList.find((p) => p._id === newEnquiryData.propertyId);
     const assignedUser = adminUsers.find((u) => u._id === newEnquiryData.assignedTo);
 
+    const isReferral = (newEnquiryData.leadSource || '').toLowerCase().includes('referral');
+    const isBroker =
+      (newEnquiryData.leadSource || '').toLowerCase().includes('broker') ||
+      (newEnquiryData.leadSource || '').toLowerCase().includes('channel partner');
+
     const payload = {
       type: 'general',
       name: newEnquiryData.name.trim(),
@@ -275,6 +282,8 @@ export const AdminEnquiries = () => {
       propertyId: newEnquiryData.propertyId || null,
       propertyTitle: selectedProp ? selectedProp.title : (newEnquiryData.propertyTitle || ''),
       leadSource: newEnquiryData.leadSource || '',
+      referralName: isReferral ? (newEnquiryData.referralName || '').trim() : '',
+      brokerName: isBroker ? (newEnquiryData.brokerName || '').trim() : '',
       message: newEnquiryData.message || '',
       status: newEnquiryData.status || 'New',
       temperature: newEnquiryData.temperature || 'Warm',
@@ -348,13 +357,14 @@ export const AdminEnquiries = () => {
       return;
     }
     if (enquiries.length === 0) return;
-    const headers = ['Type', 'Client Name', 'Phone', 'Email', 'Lead Source', 'Property / Subject', 'Status', 'Date Submitted'];
+    const headers = ['Type', 'Client Name', 'Phone', 'Email', 'Lead Source', 'Referral / Broker Name', 'Property / Subject', 'Status', 'Date Submitted'];
     const rows = enquiries.map((e) => [
       e.type,
       `"${e.name}"`,
       `"${e.phone}"`,
       `"${e.email}"`,
       `"${e.leadSource || 'Direct / Website'}"`,
+      `"${e.referralName || e.brokerName || '-'}"`,
       `"${e.propertyTitle || e.subject || ''}"`,
       e.status,
       new Date(e.createdAt).toLocaleDateString(),
@@ -820,9 +830,21 @@ export const AdminEnquiries = () => {
                       <div>
                         {getTypeBadge(item.type)}
                         {item.leadSource && (
-                          <span className="block mt-1 text-[10px] font-semibold text-charcoal-500">
-                            via {item.leadSource}
-                          </span>
+                          <div className="mt-1">
+                            <span className="block text-[10px] font-semibold text-charcoal-600">
+                              via {item.leadSource}
+                            </span>
+                            {item.referralName && (
+                              <span className="text-[10px] text-gold font-medium block">
+                                Ref: {item.referralName}
+                              </span>
+                            )}
+                            {item.brokerName && (
+                              <span className="text-[10px] text-gold font-medium block">
+                                Broker: {item.brokerName}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>
@@ -1054,39 +1076,104 @@ export const AdminEnquiries = () => {
               </div>
 
               {/* Lead Source Selector / Display in Drawer */}
-              <div className="p-3.5 rounded-xl bg-surface-warm border border-gray-200 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-primary uppercase tracking-wider">
-                    Lead Source Channel:
-                  </span>
-                </div>
-                <select
-                  value={selectedEnquiry.leadSource || ''}
-                  onChange={async (e) => {
-                    const newSource = e.target.value;
-                    try {
-                      const res = await api.updateEnquiry(selectedEnquiry._id, { leadSource: newSource });
-                      if (res.success) {
-                        setSelectedEnquiry({ ...selectedEnquiry, leadSource: newSource });
-                        setEnquiries((prev) =>
-                          prev.map((item) =>
-                            item._id === selectedEnquiry._id ? { ...item, leadSource: newSource } : item
-                          )
-                        );
+              <div className="p-3.5 rounded-xl bg-surface-warm border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Lead Source Channel:
+                    </span>
+                  </div>
+                  <select
+                    value={selectedEnquiry.leadSource || ''}
+                    onChange={async (e) => {
+                      const newSource = e.target.value;
+                      try {
+                        const res = await api.updateEnquiry(selectedEnquiry._id, { leadSource: newSource });
+                        if (res.success) {
+                          setSelectedEnquiry({ ...selectedEnquiry, leadSource: newSource });
+                          setEnquiries((prev) =>
+                            prev.map((item) =>
+                              item._id === selectedEnquiry._id ? { ...item, leadSource: newSource } : item
+                            )
+                          );
+                        }
+                      } catch (err) {
+                        console.error('Failed to update lead source:', err);
                       }
-                    } catch (err) {
-                      console.error('Failed to update lead source:', err);
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
-                >
-                  <option value="">Select / Update Source...</option>
-                  {leadSourcesList.map((src) => (
-                    <option key={src._id || src.name} value={src.name}>
-                      {src.name}
-                    </option>
-                  ))}
-                </select>
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="">Select / Update Source...</option>
+                    {leadSourcesList.map((src) => (
+                      <option key={src._id || src.name} value={src.name}>
+                        {src.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Referral Attribution input in Drawer */}
+                {(selectedEnquiry.leadSource || '').toLowerCase().includes('referral') && (
+                  <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-gold-dark">Referral Name:</span>
+                    <input
+                      type="text"
+                      placeholder="Enter referrer name..."
+                      defaultValue={selectedEnquiry.referralName || ''}
+                      onBlur={async (e) => {
+                        const val = e.target.value.trim();
+                        if (val !== selectedEnquiry.referralName) {
+                          try {
+                            const res = await api.updateEnquiry(selectedEnquiry._id, { referralName: val });
+                            if (res.success) {
+                              setSelectedEnquiry({ ...selectedEnquiry, referralName: val });
+                              setEnquiries((prev) =>
+                                prev.map((item) =>
+                                  item._id === selectedEnquiry._id ? { ...item, referralName: val } : item
+                                )
+                              );
+                            }
+                          } catch (err) {
+                            console.error('Failed to update referral name:', err);
+                          }
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1 max-w-[240px]"
+                    />
+                  </div>
+                )}
+
+                {/* Broker Attribution input in Drawer */}
+                {((selectedEnquiry.leadSource || '').toLowerCase().includes('broker') ||
+                  (selectedEnquiry.leadSource || '').toLowerCase().includes('channel partner')) && (
+                  <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-gold-dark">Broker / CP Name:</span>
+                    <input
+                      type="text"
+                      placeholder="Enter broker or agency..."
+                      defaultValue={selectedEnquiry.brokerName || ''}
+                      onBlur={async (e) => {
+                        const val = e.target.value.trim();
+                        if (val !== selectedEnquiry.brokerName) {
+                          try {
+                            const res = await api.updateEnquiry(selectedEnquiry._id, { brokerName: val });
+                            if (res.success) {
+                              setSelectedEnquiry({ ...selectedEnquiry, brokerName: val });
+                              setEnquiries((prev) =>
+                                prev.map((item) =>
+                                  item._id === selectedEnquiry._id ? { ...item, brokerName: val } : item
+                                )
+                              );
+                            }
+                          } catch (err) {
+                            console.error('Failed to update broker name:', err);
+                          }
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-gray-300 text-xs bg-white focus:outline-none focus:border-primary flex-1 max-w-[240px]"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Client Contact Info */}
@@ -1346,6 +1433,43 @@ export const AdminEnquiries = () => {
                   </select>
                 </div>
               </div>
+
+              {/* Conditional Referral Name Input */}
+              {(newEnquiryData.leadSource || '').toLowerCase().includes('referral') && (
+                <div className="p-3.5 rounded-xl bg-gold/5 border border-gold/30 animate-in fade-in duration-200">
+                  <label className="block text-xs font-bold text-gold-dark uppercase mb-1 flex items-center gap-1.5">
+                    <span>Referral Name *</span>
+                    <span className="text-[10px] font-normal text-charcoal-500 normal-case">(Person who referred this client)</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter referrer name (e.g. Mr. Rajesh Mehta, Dr. Kapoor)"
+                    value={newEnquiryData.referralName || ''}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, referralName: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gold/40 text-xs focus:outline-none focus:border-primary bg-white shadow-xs"
+                  />
+                </div>
+              )}
+
+              {/* Conditional Broker / Channel Partner Name Input */}
+              {((newEnquiryData.leadSource || '').toLowerCase().includes('broker') ||
+                (newEnquiryData.leadSource || '').toLowerCase().includes('channel partner')) && (
+                <div className="p-3.5 rounded-xl bg-gold/5 border border-gold/30 animate-in fade-in duration-200">
+                  <label className="block text-xs font-bold text-gold-dark uppercase mb-1 flex items-center gap-1.5">
+                    <span>Broker / Channel Partner Name *</span>
+                    <span className="text-[10px] font-normal text-charcoal-500 normal-case">(Agency / Individual broker name)</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter broker or agency name (e.g. Knight Frank, PropEquity, Amit Shah Associates)"
+                    value={newEnquiryData.brokerName || ''}
+                    onChange={(e) => setNewEnquiryData({ ...newEnquiryData, brokerName: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-gold/40 text-xs focus:outline-none focus:border-primary bg-white shadow-xs"
+                  />
+                </div>
+              )}
 
               {/* Status, Temperature & Assigned Rep */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

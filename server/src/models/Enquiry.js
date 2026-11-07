@@ -81,6 +81,16 @@ const enquirySchema = new mongoose.Schema(
       default: '', // e.g. "Google Search", "Phone Call", "Walk-in", "Referral", etc.
       trim: true,
     },
+    referralName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    brokerName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     adminNotes: {
       type: String,
       default: '',

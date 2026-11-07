@@ -25,6 +25,8 @@ router.post('/', async (req, res) => {
       assignedTo = null,
       assignedToName = '',
       leadSource = '',
+      referralName = '',
+      brokerName = '',
     } = req.body;
 
     if (!name || !phone) {
@@ -57,6 +59,8 @@ router.post('/', async (req, res) => {
       assignedTo: assignedTo || null,
       assignedToName: assignedToName || '',
       leadSource: leadSource || '',
+      referralName: referralName || '',
+      brokerName: brokerName || '',
     });
 
     const savedEnquiry = await enquiry.save();
@@ -156,7 +160,7 @@ router.get('/:id', verifyAdmin, async (req, res) => {
 // PATCH /api/enquiries/:id - Update status / notes / assigned rep / temperature / lead source (Admin Only)
 router.patch('/:id', verifyAdmin, async (req, res) => {
   try {
-    const { status, adminNotes, assignedTo, assignedToName, temperature, leadSource } = req.body;
+    const { status, adminNotes, assignedTo, assignedToName, temperature, leadSource, referralName, brokerName } = req.body;
     const enquiry = await Enquiry.findById(req.params.id);
 
     if (!enquiry) {
@@ -167,6 +171,8 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
     if (temperature !== undefined) enquiry.temperature = temperature;
     if (adminNotes !== undefined) enquiry.adminNotes = adminNotes;
     if (leadSource !== undefined) enquiry.leadSource = leadSource;
+    if (referralName !== undefined) enquiry.referralName = referralName;
+    if (brokerName !== undefined) enquiry.brokerName = brokerName;
     if (assignedTo !== undefined) {
       enquiry.assignedTo = assignedTo || null;
       enquiry.assignedToName = assignedToName || '';
