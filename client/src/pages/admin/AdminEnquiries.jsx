@@ -78,7 +78,7 @@ export const AdminEnquiries = () => {
 
   // Site Visit Schedule Form state within Enquiry Modal
   const [siteVisitDate, setSiteVisitDate] = useState('');
-  const [siteVisitTime, setSiteVisitTime] = useState('Morning (10:00 AM - 1:00 PM)');
+  const [siteVisitTime, setSiteVisitTime] = useState('11:00 AM');
   const [siteVisitPropertyId, setSiteVisitPropertyId] = useState('');
   const [schedulingVisit, setSchedulingVisit] = useState(false);
   const [scheduleSuccessMsg, setScheduleSuccessMsg] = useState('');
@@ -406,7 +406,7 @@ export const AdminEnquiries = () => {
     setSelectedEnquiry(item);
     setEditingNotes(item.adminNotes || '');
     setSiteVisitDate(item.preferredDate || '');
-    setSiteVisitTime(item.preferredTime || 'Morning (10:00 AM - 1:00 PM)');
+    setSiteVisitTime(item.preferredTime || '11:00 AM');
     setSiteVisitPropertyId(item.propertyId?._id || item.propertyId || '');
     setScheduleSuccessMsg('');
   };
@@ -1343,16 +1343,38 @@ export const AdminEnquiries = () => {
 
                   <div className="sm:col-span-2">
                     <label className="block text-[10px] font-bold text-blue-900 uppercase mb-1">
-                      Time Slot
+                      Time Slot (AM/PM)
                     </label>
                     <select
                       value={siteVisitTime}
                       onChange={(e) => setSiteVisitTime(e.target.value)}
                       className="w-full px-2.5 py-2 rounded-lg border border-blue-200 text-xs bg-white text-primary focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="Morning (10:00 AM - 1:00 PM)">Morning (10 AM)</option>
-                      <option value="Afternoon (1:00 PM - 4:00 PM)">Afternoon (2 PM)</option>
-                      <option value="Sunset / Evening (4:00 PM - 7:00 PM)">Sunset (5 PM)</option>
+                      <option value="08:00 AM">08:00 AM</option>
+                      <option value="08:30 AM">08:30 AM</option>
+                      <option value="09:00 AM">09:00 AM</option>
+                      <option value="09:30 AM">09:30 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="10:30 AM">10:30 AM</option>
+                      <option value="11:00 AM">11:00 AM</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                      <option value="12:00 PM">12:00 PM</option>
+                      <option value="12:30 PM">12:30 PM</option>
+                      <option value="01:00 PM">01:00 PM</option>
+                      <option value="01:30 PM">01:30 PM</option>
+                      <option value="02:00 PM">02:00 PM</option>
+                      <option value="02:30 PM">02:30 PM</option>
+                      <option value="03:00 PM">03:00 PM</option>
+                      <option value="03:30 PM">03:30 PM</option>
+                      <option value="04:00 PM">04:00 PM</option>
+                      <option value="04:30 PM">04:30 PM</option>
+                      <option value="05:00 PM">05:00 PM</option>
+                      <option value="05:30 PM">05:30 PM</option>
+                      <option value="06:00 PM">06:00 PM</option>
+                      <option value="06:30 PM">06:30 PM</option>
+                      <option value="07:00 PM">07:00 PM</option>
+                      <option value="07:30 PM">07:30 PM</option>
+                      <option value="08:00 PM">08:00 PM</option>
                     </select>
                   </div>
 
