@@ -338,26 +338,6 @@ export const PropertyDetailPage = () => {
                 </div>
               </div>
             )}
-
-            {/* Locality & Commute */}
-            {property.localityHighlights && property.localityHighlights.length > 0 && (
-              <div className="p-8 rounded-2xl bg-white border border-[#ECECE8] shadow-sm space-y-4">
-                <h2 className="text-xl font-bold text-primary">Strategic Locality & Commute</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {property.localityHighlights.map((loc, i) => (
-                    <div key={i} className="p-4 rounded-xl border border-gray-200 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] font-bold text-gold uppercase block">{loc.category}</span>
-                        <span className="text-xs font-bold text-primary">{loc.title}</span>
-                      </div>
-                      <span className="text-xs font-semibold text-charcoal-500 bg-gray-100 px-2.5 py-1 rounded">
-                        {loc.distance}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sticky Private Desk Lead Capture Form */}
