@@ -31,8 +31,6 @@ export const PropertyDetailPage = () => {
     name: '',
     email: '',
     phone: '',
-    preferredDate: '',
-    preferredTime: 'Morning (10:00 AM - 1:00 PM)',
     message: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -68,7 +66,8 @@ export const PropertyDetailPage = () => {
     setErrorMsg('');
     try {
       const res = await api.submitEnquiry({
-        type: 'site_visit',
+        type: 'contact',
+        subject: `Enquiry for ${property.title}`,
         propertyId: property._id,
         propertyTitle: property.title,
         ...formData,
@@ -368,9 +367,9 @@ export const PropertyDetailPage = () => {
                 <div className="inline-flex items-center gap-1.5 text-gold text-xs font-bold uppercase tracking-wider mb-1">
                   <ShieldCheck className="w-4 h-4" /> Confidential Advisory
                 </div>
-                <h3 className="text-xl font-bold text-primary">Schedule Private Viewing</h3>
+                <h3 className="text-xl font-bold text-primary">Property Enquiry</h3>
                 <p className="text-xs text-charcoal-500 mt-1">
-                  Experience {property.title} in person with an executive real estate partner.
+                  Connect with our private wealth advisor for bespoke details and acquisition advisory for {property.title}.
                 </p>
               </div>
 
@@ -379,12 +378,15 @@ export const PropertyDetailPage = () => {
                   <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h4 className="font-bold text-primary">Inspection Registered</h4>
+                  <h4 className="font-bold text-primary">Enquiry Submitted</h4>
                   <p className="text-xs text-charcoal-600 leading-relaxed">
-                    Thank you, {formData.name}. Our private desk has logged your site inspection preference. We will reach out shortly via phone.
+                    Thank you, {formData.name}. Our private advisory desk has received your enquiry. We will reach out shortly.
                   </p>
                   <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => {
+                      setSubmitted(false);
+                      setFormData({ name: '', email: '', phone: '', message: '' });
+                    }}
                     className="mt-2 text-xs font-bold text-gold hover:underline"
                   >
                     Submit another enquiry
@@ -444,44 +446,16 @@ export const PropertyDetailPage = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[11px] font-bold text-charcoal-600 uppercase mb-1">
-                        Preferred Date
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.preferredDate}
-                        onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                        className="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-charcoal-600 uppercase mb-1">
-                        Time Slot
-                      </label>
-                      <select
-                        value={formData.preferredTime}
-                        onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                        className="w-full px-2.5 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:outline-none"
-                      >
-                        <option>Morning (10 AM)</option>
-                        <option>Afternoon (2 PM)</option>
-                        <option>Sunset (5 PM)</option>
-                      </select>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-[11px] font-bold text-charcoal-600 uppercase mb-1">
-                      Message / Special Requests
+                      Message / Enquiry Remarks
                     </label>
                     <textarea
-                      rows={2}
-                      placeholder="Floor preference, questions, or private chauffeur requirements..."
+                      rows={3}
+                      placeholder="Please share details on pricing, floor plans, or consultation preference..."
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary resize-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary resize-none"
                     ></textarea>
                   </div>
 
@@ -493,7 +467,7 @@ export const PropertyDetailPage = () => {
                     {submitting ? (
                       <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                      <span>Request VIP Site Inspection</span>
+                      <span>Submit Property Enquiry</span>
                     )}
                   </button>
 
