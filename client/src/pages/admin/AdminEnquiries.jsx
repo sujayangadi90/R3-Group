@@ -1412,30 +1412,6 @@ export const AdminEnquiries = () => {
                   {selectedEnquiry.message || 'No additional message provided.'}
                 </div>
               </div>
-
-              {/* Internal Notes */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-bold text-charcoal-500 uppercase">
-                    Internal Advisory Notes
-                  </span>
-                  <span className="text-[11px] text-charcoal-500">Visible only to admins</span>
-                </div>
-                <textarea
-                  rows={3}
-                  value={editingNotes}
-                  onChange={(e) => setEditingNotes(e.target.value)}
-                  placeholder="Record call logs, client net worth, architect visit notes, or next steps..."
-                  className="w-full p-3 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary resize-none"
-                ></textarea>
-                <button
-                  onClick={handleSaveNotes}
-                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-black transition-colors"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save Notes</span>
-                </button>
-              </div>
             </div>
 
             {/* Modal Footer */}
