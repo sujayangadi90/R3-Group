@@ -30,11 +30,11 @@ const propertySchema = new mongoose.Schema(
     },
     price: {
       type: Number, // Stored in full numeric value e.g. 38500000 for 3.85 Cr
-      required: true,
+      default: 0,
     },
     priceDisplay: {
       type: String,
-      required: true, // e.g. "₹ 3.85 Cr - ₹ 4.50 Cr" or "₹ 18.5 Cr"
+      default: 'Price on Request',
     },
     location: {
       type: String,
@@ -58,7 +58,7 @@ const propertySchema = new mongoose.Schema(
     },
     carpetArea: {
       type: mongoose.Schema.Types.Mixed, // Can be Number (6450) or String ("3,500 - 6,450 sq.ft")
-      required: true,
+      default: '',
     },
     configurations: [
       {

@@ -369,7 +369,7 @@ export const AdminProperties = () => {
 
     const payload = {
       ...formData,
-      price: Number(formData.price),
+      price: Number(formData.price) || 0,
       bedrooms: primaryBhk || 'Flexible',
       bathrooms: primaryBaths || 'Flexible',
       carpetArea: primaryCarpet || 'On Request',
@@ -531,9 +531,11 @@ export const AdminProperties = () => {
                     {/* Specs */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-charcoal-600">
                       <div>{item.bedrooms > 0 ? `${item.bedrooms} BHK` : item.propertyType}</div>
-                      <div className="text-[11px] text-charcoal-500">
-                        {item.carpetArea?.toLocaleString()} sq.ft
-                      </div>
+                      {item.carpetArea && item.carpetArea !== 'On Request' && (
+                        <div className="text-[11px] text-charcoal-500">
+                          {item.carpetArea?.toLocaleString()} sq.ft
+                        </div>
+                      )}
                     </td>
 
                     {/* Status */}
@@ -738,38 +740,19 @@ export const AdminProperties = () => {
                 </div>
               </div>
 
-              {/* Price Numeric & Price Display */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Price (Numeric In Rupees) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="e.g. 185000000"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                  <span className="text-[10px] text-charcoal-500">
-                    Numeric value for search filters (e.g. 185000000 = 18.50 Cr)
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Price Display String *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. ₹ 18.50 Cr or ₹ 18.5 Cr - ₹ 22.0 Cr"
-                    value={formData.priceDisplay}
-                    onChange={(e) => setFormData({ ...formData, priceDisplay: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
+              {/* Price Display */}
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                  Price Display String *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Price on Request or ₹ 18.5 Cr"
+                  value={formData.priceDisplay}
+                  onChange={(e) => setFormData({ ...formData, priceDisplay: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                />
               </div>
 
               {/* City, Location/Locality, Address */}
@@ -870,36 +853,19 @@ export const AdminProperties = () => {
                 </div>
               </div>
 
-              {/* Carpet Area & Possession */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Carpet Area / Total Area (Sq.Ft) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 5,000 sq.ft or 3,200 - 6,450 sq.ft"
-                    value={formData.carpetArea}
-                    onChange={(e) => setFormData({ ...formData, carpetArea: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                  <span className="text-[10px] text-charcoal-400 block mt-0.5">Primary area or range for this listing</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
-                    Possession Status *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Immediate or Q4 2026"
-                    value={formData.possessionDate}
-                    onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
+              {/* Possession Status */}
+              <div>
+                <label className="block text-xs font-semibold text-charcoal-700 uppercase mb-1">
+                  Possession Status *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Immediate or Q4 2026"
+                  value={formData.possessionDate}
+                  onChange={(e) => setFormData({ ...formData, possessionDate: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 text-xs focus:outline-none focus:border-primary"
+                />
               </div>
 
               {/* Property Configurations & Layouts Builder */}

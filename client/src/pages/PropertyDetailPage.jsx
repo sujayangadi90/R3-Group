@@ -224,19 +224,21 @@ export const PropertyDetailPage = () => {
             )}
 
             {/* Key Specifications Strip */}
-            <div className="p-6 rounded-2xl bg-white border border-[#ECECE8] shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div className="p-6 rounded-2xl bg-white border border-[#ECECE8] shadow-sm grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
               <div>
                 <span className="block text-xs font-semibold text-charcoal-500 uppercase">Configuration</span>
                 <span className="text-lg font-bold text-primary mt-0.5 block">
                   {property.bedrooms ? (typeof property.bedrooms === 'string' && property.bedrooms.includes('BHK') ? property.bedrooms : `${property.bedrooms} BHK`) : property.propertyType}
                 </span>
               </div>
-              <div>
-                <span className="block text-xs font-semibold text-charcoal-500 uppercase">Carpet Area</span>
-                <span className="text-lg font-bold text-primary mt-0.5 block">
-                  {property.carpetArea?.toLocaleString()} sq.ft
-                </span>
-              </div>
+              {property.carpetArea && property.carpetArea !== 'On Request' && (
+                <div>
+                  <span className="block text-xs font-semibold text-charcoal-500 uppercase">Carpet Area</span>
+                  <span className="text-lg font-bold text-primary mt-0.5 block">
+                    {property.carpetArea?.toLocaleString()} sq.ft
+                  </span>
+                </div>
+              )}
               <div>
                 <span className="block text-xs font-semibold text-charcoal-500 uppercase">Bathrooms</span>
                 <span className="text-lg font-bold text-primary mt-0.5 block">
