@@ -30,7 +30,7 @@ export const AboutPage = () => {
               </h1>
 
               <p className="text-base lg:text-lg text-charcoal-600 max-w-2xl leading-relaxed">
-                Founded on absolute discretion, architectural reverence, and institutional rigor, R3 Group is South Mumbai’s premier real estate advisory firm serving family offices, generational dynasties, and discerning global investors.
+                Founded on absolute discretion, architectural reverence, and institutional rigor, R3 Group is a premier real estate advisory firm serving family offices, generational dynasties, and discerning global investors.
               </p>
 
               <div className="pt-2 flex flex-wrap items-center gap-4">
