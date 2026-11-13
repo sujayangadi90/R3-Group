@@ -104,14 +104,6 @@ export const AdminDashboard = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/"
-            target="_blank"
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gold transition-colors"
-            title="View Live Website"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </Link>
           <button
             onClick={handleLogout}
             className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer"
