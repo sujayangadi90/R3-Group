@@ -7,6 +7,7 @@ import {
   Trash2,
   Sparkles,
   ExternalLink,
+  Link2,
   Eye,
   Check,
   X,
@@ -578,6 +579,14 @@ export const AdminProperties = () => {
 
                     {/* Actions */}
                     <td className="py-3.5 px-4 whitespace-nowrap text-right space-x-1.5">
+                      <Link
+                        to={`/lp/${item.slug || item._id}`}
+                        target="_blank"
+                        className="inline-block p-1.5 rounded-lg border border-gray-200 text-gold hover:border-gold transition-colors"
+                        title="FB/Insta Landing Page"
+                      >
+                        <Link2 className="w-3.5 h-3.5" />
+                      </Link>
                       <Link
                         to={`/properties/${item.slug || item._id}`}
                         target="_blank"

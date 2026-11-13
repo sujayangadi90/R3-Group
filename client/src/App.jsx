@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { HomePage } from './pages/HomePage';
 import { PropertiesPage } from './pages/PropertiesPage';
 import { PropertyDetailPage } from './pages/PropertyDetailPage';
+import { PropertyLandingPage } from './pages/PropertyLandingPage';
 import { SellPage } from './pages/SellPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
@@ -62,6 +63,7 @@ export const App = () => {
             </PublicLayout>
           }
         />
+        <Route path="/lp/:id" element={<PropertyLandingPage />} />
         <Route
           path="/sell"
           element={
