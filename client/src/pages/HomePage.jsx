@@ -364,9 +364,6 @@ export const HomePage = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block px-2.5 py-0.5 rounded bg-gold text-white text-[11px] font-bold uppercase tracking-wider mb-1">
-                      {cat.count}
-                    </span>
                     <h3 className="text-xl font-bold text-white group-hover:text-gold transition-colors">
                       {cat.title}
                     </h3>
