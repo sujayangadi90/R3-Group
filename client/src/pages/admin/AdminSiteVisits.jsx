@@ -93,6 +93,11 @@ export const AdminSiteVisits = () => {
       past.setDate(past.getDate() - 7);
       return { startDate: formatLocalDate(past), endDate: todayStr };
     }
+    if (datePreset === 'next7days') {
+      const next = new Date(now);
+      next.setDate(next.getDate() + 7);
+      return { startDate: todayStr, endDate: formatLocalDate(next) };
+    }
     if (datePreset === 'thisMonth') {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -353,6 +358,7 @@ export const AdminSiteVisits = () => {
               <option value="today">Today</option>
               <option value="yesterday">Yesterday</option>
               <option value="7days">Last 7 Days</option>
+              <option value="next7days">Next 7 Days</option>
               <option value="all">All Time</option>
               <option value="custom">Custom Date Range...</option>
             </select>
