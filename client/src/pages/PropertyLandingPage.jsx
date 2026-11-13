@@ -90,20 +90,28 @@ export const PropertyLandingPage = () => {
     );
   }
 
+  const bgImage = property.images && property.images.length > 0 ? property.images[0] : null;
+
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex flex-col justify-center py-10 px-4">
-      <div className="max-w-lg w-full mx-auto space-y-6">
+    <div
+      className="min-h-screen relative flex flex-col justify-center py-10 px-4 bg-[#1a1a1a] bg-cover bg-center"
+      style={bgImage ? { backgroundImage: `url(${bgImage})` } : undefined}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/65" />
+
+      <div className="relative z-10 max-w-lg w-full mx-auto space-y-6">
         {/* Project Header */}
         <div className="text-center space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/10 text-gold text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/20 text-gold text-[11px] font-bold uppercase tracking-wider backdrop-blur-xs">
             <ShieldCheck className="w-3.5 h-3.5" />
             R3 Group
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             {property.title}
           </h1>
           {(property.locality || property.city) && (
-            <p className="text-sm text-charcoal-500 inline-flex items-center justify-center gap-1">
+            <p className="text-sm text-gray-200 inline-flex items-center justify-center gap-1">
               <MapPin className="w-4 h-4 text-gold" />
               {[property.locality, property.city].filter(Boolean).join(', ')}
             </p>
