@@ -49,7 +49,7 @@ export const PropertyLandingPage = () => {
 
     try {
       setSubmitting(true);
-      const res = await api.submitLead({
+      const res = await api.submitEnquiry({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         email: formData.email.trim(),

@@ -123,8 +123,8 @@ export const ContactPage = () => {
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-charcoal-500 uppercase">Telephone Concierge</span>
-                    <a href="tel:+917676759595" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
-                      +91 76767 59595
+                    <a href="tel:+918867579595" className="text-xs font-semibold text-primary hover:text-gold block mt-0.5">
+                      +91 88675 79595
                     </a>
                   </div>
                 </div>
