@@ -311,7 +311,7 @@ export const HomePage = () => {
               to="/properties"
               className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-gold transition-colors group"
             >
-              <span>Explore All 140+ Properties</span>
+              <span>Explore all</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
