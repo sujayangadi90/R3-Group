@@ -346,7 +346,7 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Quick Links Section */}
-            <div className="pt-4 border-t border-[#2A2A2A]">
+            <div className="hidden lg:block pt-4 border-t border-[#2A2A2A]">
               <span className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">
                 Public Controls
               </span>
@@ -444,13 +444,13 @@ export const AdminDashboard = () => {
             <Link
               to="/"
               target="_blank"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 hover:bg-surface-warm text-xs font-bold text-primary transition-colors shadow-sm"
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 hover:bg-surface-warm text-xs font-bold text-primary transition-colors shadow-sm"
             >
               <span>View Live Website</span>
               <ExternalLink className="w-3.5 h-3.5 text-gold" />
             </Link>
 
-            <div className="h-6 w-px bg-gray-200"></div>
+            <div className="hidden lg:block h-6 w-px bg-gray-200"></div>
 
             <span className="text-xs text-charcoal-500 font-medium">
               Signed in as <strong className="text-primary">{user?.username || 'admin'}</strong>
