@@ -67,33 +67,41 @@ export const AdminSiteVisits = () => {
   const [savingVisit, setSavingVisit] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Format date in local timezone (YYYY-MM-DD)
+  const formatLocalDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Compute start & end dates based on preset
   const getDateRange = () => {
     const now = new Date();
+    const todayStr = formatLocalDate(now);
     if (datePreset === 'today') {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      return { startDate: start, endDate: '' };
+      return { startDate: todayStr, endDate: todayStr };
     }
     if (datePreset === 'yesterday') {
       const yest = new Date(now);
       yest.setDate(yest.getDate() - 1);
-      const start = new Date(yest.getFullYear(), yest.getMonth(), yest.getDate()).toISOString();
-      const end = new Date(yest.getFullYear(), yest.getMonth(), yest.getDate(), 23, 59, 59, 999).toISOString();
-      return { startDate: start, endDate: end };
+      const yestStr = formatLocalDate(yest);
+      return { startDate: yestStr, endDate: yestStr };
     }
     if (datePreset === '7days') {
       const past = new Date(now);
       past.setDate(past.getDate() - 7);
-      return { startDate: new Date(past.getFullYear(), past.getMonth(), past.getDate()).toISOString(), endDate: '' };
+      return { startDate: formatLocalDate(past), endDate: todayStr };
     }
     if (datePreset === 'thisMonth') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      return { startDate: start, endDate: '' };
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      return { startDate: formatLocalDate(start), endDate: formatLocalDate(end) };
     }
     if (datePreset === 'custom') {
       return {
-        startDate: customStartDate ? new Date(customStartDate).toISOString() : '',
-        endDate: customEndDate ? new Date(customEndDate).toISOString() : '',
+        startDate: customStartDate || '',
+        endDate: customEndDate || '',
       };
     }
     return { startDate: '', endDate: '' }; // 'all'

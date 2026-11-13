@@ -141,6 +141,14 @@ router.get('/', verifyAdmin, async (req, res) => {
         if (endDate) {
           query.followUpDate.$lte = endDate;
         }
+      } else if (isSiteVisit === 'true') {
+        query.preferredDate = { $exists: true, $ne: '' };
+        if (startDate) {
+          query.preferredDate.$gte = startDate;
+        }
+        if (endDate) {
+          query.preferredDate.$lte = endDate;
+        }
       } else {
         query.createdAt = {};
         if (startDate) {
