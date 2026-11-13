@@ -47,6 +47,11 @@ export const PropertyLandingPage = () => {
       return;
     }
 
+    if (!/^\d{10}$/.test(formData.phone.trim())) {
+      setSubmitError('Please enter a valid 10-digit phone number.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await api.submitEnquiry({
@@ -172,10 +177,15 @@ export const PropertyLandingPage = () => {
                   <Phone className="w-4 h-4 text-charcoal-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
                     placeholder="10-digit mobile number"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: digits });
+                    }}
                     className="w-full pl-10 pr-3.5 py-2.5 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-primary"
                   />
                 </div>
