@@ -133,14 +133,24 @@ router.get('/', verifyAdmin, async (req, res) => {
     }
 
     if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) {
-        query.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        query.createdAt.$lte = end;
+      if (isFollowUp === 'true') {
+        query.followUpDate = { $exists: true, $ne: '' };
+        if (startDate) {
+          query.followUpDate.$gte = startDate;
+        }
+        if (endDate) {
+          query.followUpDate.$lte = endDate;
+        }
+      } else {
+        query.createdAt = {};
+        if (startDate) {
+          query.createdAt.$gte = new Date(startDate);
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = end;
+        }
       }
     }
 

@@ -110,10 +110,18 @@ export const AdminScheduledFollowUps = () => {
     fetchUsers();
   }, []);
 
+  // Format date in local timezone (YYYY-MM-DD) to avoid UTC day shift
+  const formatLocalDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Compute date range
   const getDateRange = () => {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = formatLocalDate(now);
 
     if (datePreset === 'today') {
       return { startDate: todayStr, endDate: todayStr };
@@ -121,7 +129,7 @@ export const AdminScheduledFollowUps = () => {
     if (datePreset === 'tomorrow') {
       const tmrw = new Date(now);
       tmrw.setDate(tmrw.getDate() + 1);
-      const tmrwStr = tmrw.toISOString().split('T')[0];
+      const tmrwStr = formatLocalDate(tmrw);
       return { startDate: tmrwStr, endDate: tmrwStr };
     }
     if (datePreset === 'thisWeek') {
@@ -130,16 +138,16 @@ export const AdminScheduledFollowUps = () => {
       const end = new Date(start);
       end.setDate(start.getDate() + 6);
       return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
+        startDate: formatLocalDate(start),
+        endDate: formatLocalDate(end),
       };
     }
     if (datePreset === 'thisMonth') {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       return {
-        startDate: start.toISOString().split('T')[0],
-        endDate: end.toISOString().split('T')[0],
+        startDate: formatLocalDate(start),
+        endDate: formatLocalDate(end),
       };
     }
     if (datePreset === 'custom') {
