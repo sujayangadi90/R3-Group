@@ -23,7 +23,7 @@ export const PropertyLandingPage = () => {
     const fetchProperty = async () => {
       try {
         setLoading(true);
-        const res = await api.getPropertyById(id);
+        const res = await api.getProperty(id);
         if (res.success && res.data) {
           setProperty(res.data);
         } else {
