@@ -238,12 +238,14 @@ export const PropertyDetailPage = () => {
                   </span>
                 </div>
               )}
-              <div>
-                <span className="block text-xs font-semibold text-charcoal-500 uppercase">Bathrooms</span>
-                <span className="text-lg font-bold text-primary mt-0.5 block">
-                  {property.bathrooms ? `${property.bathrooms} ${String(property.bathrooms).toLowerCase().includes('bath') ? '' : 'Baths'}` : 'N/A'}
-                </span>
-              </div>
+              {property.propertyType !== 'Plot' && (
+                <div>
+                  <span className="block text-xs font-semibold text-charcoal-500 uppercase">Bathrooms</span>
+                  <span className="text-lg font-bold text-primary mt-0.5 block">
+                    {property.bathrooms ? `${property.bathrooms} ${String(property.bathrooms).toLowerCase().includes('bath') ? '' : 'Baths'}` : 'N/A'}
+                  </span>
+                </div>
+              )}
               <div>
                 <span className="block text-xs font-semibold text-charcoal-500 uppercase">Possession</span>
                 <span className="text-lg font-bold text-primary mt-0.5 block">
@@ -272,7 +274,7 @@ export const PropertyDetailPage = () => {
                     <thead>
                       <tr className="bg-surface-warm border-b border-gray-100 text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
                         <th className="py-3 px-4">Configuration</th>
-                        <th className="py-3 px-4">Bathrooms</th>
+                        {property.propertyType !== 'Plot' && <th className="py-3 px-4">Bathrooms</th>}
                         <th className="py-3 px-4">Dimensions</th>
                         <th className="py-3 px-4">Carpet Area</th>
                         <th className="py-3 px-4 text-right">Pricing</th>
@@ -282,7 +284,9 @@ export const PropertyDetailPage = () => {
                       {property.configurations.map((item, idx) => (
                         <tr key={idx} className="hover:bg-surface/50">
                           <td className="py-3.5 px-4 font-bold text-primary">{item.bhk}</td>
-                          <td className="py-3.5 px-4 text-charcoal-600 font-semibold">{item.bathrooms || '—'}</td>
+                          {property.propertyType !== 'Plot' && (
+                            <td className="py-3.5 px-4 text-charcoal-600 font-semibold">{item.bathrooms || '—'}</td>
+                          )}
                           <td className="py-3.5 px-4 text-charcoal-600">{item.dimensions || '—'}</td>
                           <td className="py-3.5 px-4 font-semibold text-primary">{item.carpetArea || '—'}</td>
                           <td className="py-3.5 px-4 text-right font-bold text-gold">Price on Request</td>

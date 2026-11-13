@@ -342,9 +342,11 @@ export const AdminProperties = () => {
       return;
     }
 
+    const isPlot = formData.propertyType === 'Plot';
+
     // Determine primary bedrooms, bathrooms, and carpetArea from configurations if provided
     let primaryBhk = formData.bedrooms;
-    let primaryBaths = formData.bathrooms;
+    let primaryBaths = isPlot ? '' : formData.bathrooms;
     let primaryCarpet = formData.carpetArea;
 
     if (formData.configurations && formData.configurations.length > 0) {
@@ -354,11 +356,13 @@ export const AdminProperties = () => {
         .join(', ');
       if (bhkList) primaryBhk = bhkList;
 
-      const bathList = formData.configurations
-        .map((c) => c.bathrooms)
-        .filter(Boolean)
-        .join(', ');
-      if (bathList) primaryBaths = bathList;
+      if (!isPlot) {
+        const bathList = formData.configurations
+          .map((c) => c.bathrooms)
+          .filter(Boolean)
+          .join(', ');
+        if (bathList) primaryBaths = bathList;
+      }
 
       const carpetList = formData.configurations
         .map((c) => c.carpetArea || c.dimensions)
@@ -367,14 +371,18 @@ export const AdminProperties = () => {
       if (carpetList) primaryCarpet = carpetList;
     }
 
+    const sanitizedConfigurations = (formData.configurations || []).map((c) =>
+      isPlot ? { ...c, bathrooms: '' } : c
+    );
+
     const payload = {
       ...formData,
       price: Number(formData.price) || 0,
       bedrooms: primaryBhk || 'Flexible',
-      bathrooms: primaryBaths || 'Flexible',
+      bathrooms: isPlot ? '' : primaryBaths || 'Flexible',
       carpetArea: primaryCarpet || 'On Request',
       totalFloors: Number(formData.totalFloors) || 1,
-      configurations: formData.configurations || [],
+      configurations: sanitizedConfigurations,
       images: formData.images,
     };
 
@@ -888,8 +896,8 @@ export const AdminProperties = () => {
                         configurations: [
                           ...(formData.configurations || []),
                           {
-                            bhk: formData.propertyType === 'Commercial' ? 'Executive Floor' : '3 BHK',
-                            bathrooms: '3 Baths',
+                            bhk: formData.propertyType === 'Commercial' ? 'Executive Floor' : formData.propertyType === 'Plot' ? 'Plot Layout' : '3 BHK',
+                            bathrooms: formData.propertyType === 'Plot' ? '' : '3 Baths',
                             dimensions: '',
                             carpetArea: '',
                             price: 'Price on Request',
@@ -911,7 +919,7 @@ export const AdminProperties = () => {
                         key={idx}
                         className="p-3 bg-white rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center shadow-xs"
                       >
-                        <div className="sm:col-span-3">
+                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-4' : 'sm:col-span-3'}>
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
                             Configuration / BHK *
                           </label>
@@ -928,24 +936,26 @@ export const AdminProperties = () => {
                           />
                         </div>
 
-                        <div className="sm:col-span-2">
-                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
-                            Bathrooms
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 3 Baths"
-                            value={config.bathrooms}
-                            onChange={(e) => {
-                              const updated = [...formData.configurations];
-                              updated[idx].bathrooms = e.target.value;
-                              setFormData({ ...formData, configurations: updated });
-                            }}
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
-                          />
-                        </div>
+                        {formData.propertyType !== 'Plot' && (
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                              Bathrooms
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 3 Baths"
+                              value={config.bathrooms}
+                              onChange={(e) => {
+                                const updated = [...formData.configurations];
+                                updated[idx].bathrooms = e.target.value;
+                                setFormData({ ...formData, configurations: updated });
+                              }}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                            />
+                          </div>
+                        )}
 
-                        <div className="sm:col-span-3">
+                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-4' : 'sm:col-span-3'}>
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
                             Dimensions / Plot Size
                           </label>
