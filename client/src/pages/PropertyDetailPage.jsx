@@ -230,7 +230,7 @@ export const PropertyDetailPage = () => {
                   {property.bedrooms ? (typeof property.bedrooms === 'string' && property.bedrooms.includes('BHK') ? property.bedrooms : `${property.bedrooms} BHK`) : property.propertyType}
                 </span>
               </div>
-              {property.carpetArea && property.carpetArea !== 'On Request' && (
+              {property.propertyType !== 'Plot' && property.carpetArea && property.carpetArea !== 'On Request' && (
                 <div>
                   <span className="block text-xs font-semibold text-charcoal-500 uppercase">Carpet Area</span>
                   <span className="text-lg font-bold text-primary mt-0.5 block">
@@ -276,7 +276,7 @@ export const PropertyDetailPage = () => {
                         <th className="py-3 px-4">Configuration</th>
                         {property.propertyType !== 'Plot' && <th className="py-3 px-4">Bathrooms</th>}
                         <th className="py-3 px-4">Dimensions</th>
-                        <th className="py-3 px-4">Carpet Area</th>
+                        {property.propertyType !== 'Plot' && <th className="py-3 px-4">Carpet Area</th>}
                         <th className="py-3 px-4 text-right">Pricing</th>
                       </tr>
                     </thead>
@@ -288,7 +288,9 @@ export const PropertyDetailPage = () => {
                             <td className="py-3.5 px-4 text-charcoal-600 font-semibold">{item.bathrooms || '—'}</td>
                           )}
                           <td className="py-3.5 px-4 text-charcoal-600">{item.dimensions || '—'}</td>
-                          <td className="py-3.5 px-4 font-semibold text-primary">{item.carpetArea || '—'}</td>
+                          {property.propertyType !== 'Plot' && (
+                            <td className="py-3.5 px-4 font-semibold text-primary">{item.carpetArea || '—'}</td>
+                          )}
                           <td className="py-3.5 px-4 text-right font-bold text-gold">Price on Request</td>
                         </tr>
                       ))}

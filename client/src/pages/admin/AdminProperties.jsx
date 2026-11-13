@@ -372,7 +372,7 @@ export const AdminProperties = () => {
     }
 
     const sanitizedConfigurations = (formData.configurations || []).map((c) =>
-      isPlot ? { ...c, bathrooms: '' } : c
+      isPlot ? { ...c, bathrooms: '', carpetArea: '' } : c
     );
 
     const payload = {
@@ -919,7 +919,7 @@ export const AdminProperties = () => {
                         key={idx}
                         className="p-3 bg-white rounded-xl border border-gray-200 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center shadow-xs"
                       >
-                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-4' : 'sm:col-span-3'}>
+                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-5' : 'sm:col-span-3'}>
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
                             Configuration / BHK *
                           </label>
@@ -955,7 +955,7 @@ export const AdminProperties = () => {
                           </div>
                         )}
 
-                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-4' : 'sm:col-span-3'}>
+                        <div className={formData.propertyType === 'Plot' ? 'sm:col-span-6' : 'sm:col-span-3'}>
                           <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
                             Dimensions / Plot Size
                           </label>
@@ -972,22 +972,24 @@ export const AdminProperties = () => {
                           />
                         </div>
 
-                        <div className="sm:col-span-3">
-                          <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
-                            Carpet Area
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. 2,650 sq.ft"
-                            value={config.carpetArea}
-                            onChange={(e) => {
-                              const updated = [...formData.configurations];
-                              updated[idx].carpetArea = e.target.value;
-                              setFormData({ ...formData, configurations: updated });
-                            }}
-                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
-                          />
-                        </div>
+                        {formData.propertyType !== 'Plot' && (
+                          <div className="sm:col-span-3">
+                            <label className="block text-[10px] font-semibold text-charcoal-500 uppercase">
+                              Carpet Area
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 2,650 sq.ft"
+                              value={config.carpetArea}
+                              onChange={(e) => {
+                                const updated = [...formData.configurations];
+                                updated[idx].carpetArea = e.target.value;
+                                setFormData({ ...formData, configurations: updated });
+                              }}
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-primary"
+                            />
+                          </div>
+                        )}
 
                         <div className="sm:col-span-1 flex justify-end items-end pt-3 sm:pt-0">
                           <button
