@@ -72,6 +72,7 @@ router.post('/login', async (req, res) => {
         role: 'admin',
         userRole: user.role,
         name: user.name,
+        permissions: user.permissions,
       },
       secret,
       { expiresIn: '7d' }
@@ -88,6 +89,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         isPrimaryAdmin: user.isPrimaryAdmin,
+        permissions: user.permissions,
       },
     });
   } catch (err) {

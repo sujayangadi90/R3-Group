@@ -59,6 +59,20 @@ export const AdminDashboard = () => {
     }
   };
 
+  const hasAccess = (moduleId) => {
+    if (!user || user.isPrimaryAdmin || user.role === 'Super Admin') return true;
+    if (!Array.isArray(user.permissions) || user.permissions.length === 0) return true;
+    return user.permissions.includes(moduleId);
+  };
+
+  useEffect(() => {
+    const allModules = ['enquiries', 'sellRequests', 'siteVisits', 'followUps', 'properties', 'settings'];
+    if (!hasAccess(activeTab)) {
+      const firstAllowed = allModules.find((m) => hasAccess(m));
+      if (firstAllowed) setActiveTab(firstAllowed);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchStats();
   }, [activeTab]);
@@ -162,6 +176,7 @@ export const AdminDashboard = () => {
               {/* Vertical Menu Links */}
               <nav className="space-y-1.5">
                 {/* 1. Enquiries Desk */}
+                {hasAccess('enquiries') && (
                 <button
                   onClick={() => {
                     setActiveTab('enquiries');
@@ -194,8 +209,10 @@ export const AdminDashboard = () => {
                     </span>
                   )}
                 </button>
+                )}
 
                 {/* 2. Sell Property Req */}
+                {hasAccess('sellRequests') && (
                 <button
                   onClick={() => {
                     setActiveTab('sellRequests');
@@ -222,8 +239,10 @@ export const AdminDashboard = () => {
                     {stats.breakdown?.sellSubmissions || 0}
                   </span>
                 </button>
+                )}
 
                 {/* 3. Site Visits */}
+                {hasAccess('siteVisits') && (
                 <button
                   onClick={() => {
                     setActiveTab('siteVisits');
@@ -250,8 +269,10 @@ export const AdminDashboard = () => {
                     {stats.breakdown?.siteVisits || 0}
                   </span>
                 </button>
+                )}
 
                 {/* 4. Scheduled Followups */}
+                {hasAccess('followUps') && (
                 <button
                   onClick={() => {
                     setActiveTab('scheduledFollowUps');
@@ -278,8 +299,10 @@ export const AdminDashboard = () => {
                     {stats.breakdown?.followUps || 0}
                   </span>
                 </button>
+                )}
 
                 {/* 5. Properties Management */}
+                {hasAccess('properties') && (
                 <button
                   onClick={() => {
                     setActiveTab('properties');
@@ -306,8 +329,10 @@ export const AdminDashboard = () => {
                     {stats.totalProperties}
                   </span>
                 </button>
+                )}
 
                 {/* 6. Settings (User Management) */}
+                {hasAccess('settings') && (
                 <button
                   onClick={() => {
                     setActiveTab('settings');
@@ -334,6 +359,7 @@ export const AdminDashboard = () => {
                     Access
                   </span>
                 </button>
+                )}
               </nav>
             </div>
 

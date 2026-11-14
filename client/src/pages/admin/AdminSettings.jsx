@@ -39,6 +39,15 @@ export const AdminSettings = () => {
   const [successMsg, setSuccessMsg] = useState('');
 
   // Form State
+  const ALL_MODULES = [
+    { id: 'enquiries', label: '1. Enquiries Desk' },
+    { id: 'sellRequests', label: '2. Sell Property Req' },
+    { id: 'siteVisits', label: '3. Site Visits' },
+    { id: 'followUps', label: '4. Scheduled Followups' },
+    { id: 'properties', label: '5. Properties Management' },
+    { id: 'settings', label: '6. Settings & Users' },
+  ];
+
   const initialForm = {
     name: '',
     username: '',
@@ -46,6 +55,7 @@ export const AdminSettings = () => {
     email: '',
     role: 'Managing Partner',
     status: 'Active',
+    permissions: ALL_MODULES.map((m) => m.id),
   };
   const [formData, setFormData] = useState(initialForm);
 
@@ -83,6 +93,10 @@ export const AdminSettings = () => {
       email: u.email || '',
       role: u.role || 'Managing Partner',
       status: u.status || 'Active',
+      permissions:
+        u.permissions && u.permissions.length > 0
+          ? u.permissions
+          : ALL_MODULES.map((m) => m.id),
     });
     setFormError('');
     setIsModalOpen(true);
@@ -107,6 +121,7 @@ export const AdminSettings = () => {
           email: formData.email,
           role: formData.role,
           status: formData.status,
+          permissions: formData.permissions,
           ...(formData.password ? { newPassword: formData.password } : {}),
         });
 
@@ -573,6 +588,45 @@ export const AdminSettings = () => {
                     <option value="Active">Active</option>
                     <option value="Suspended">Suspended</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Module Access Permissions */}
+              <div>
+                <label className="block text-[11px] font-bold text-charcoal-600 uppercase tracking-wider mb-2">
+                  Module Access Permissions
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                  {ALL_MODULES.map((mod) => {
+                    const isChecked =
+                      editingUser?.isPrimaryAdmin ||
+                      (formData.permissions || []).includes(mod.id);
+                    return (
+                      <label
+                        key={mod.id}
+                        className={`flex items-center gap-2 text-xs font-medium text-primary ${
+                          editingUser?.isPrimaryAdmin
+                            ? 'opacity-60 cursor-not-allowed'
+                            : 'cursor-pointer'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          disabled={editingUser?.isPrimaryAdmin}
+                          onChange={(e) => {
+                            const current = formData.permissions || [];
+                            const updated = e.target.checked
+                              ? [...new Set([...current, mod.id])]
+                              : current.filter((id) => id !== mod.id);
+                            setFormData({ ...formData, permissions: updated });
+                          }}
+                          className="rounded border-gray-300 text-gold focus:ring-gold"
+                        />
+                        <span>{mod.label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

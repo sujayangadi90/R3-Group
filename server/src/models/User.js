@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    permissions: {
+      type: [String],
+      default: ['enquiries', 'sellRequests', 'siteVisits', 'followUps', 'properties', 'settings'],
+    },
     lastLogin: {
       type: Date,
       default: null,
