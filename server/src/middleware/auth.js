@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-export const verifyAdmin = (req, res, next) => {
+export const verifyAdmin = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -13,6 +14,17 @@ export const verifyAdmin = (req, res, next) => {
 
     if (decoded.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Admin privileges required.' });
+    }
+
+    // Immediately reject suspended or deleted accounts
+    if (decoded.id) {
+      const dbUser = await User.findById(decoded.id).select('status');
+      if (!dbUser || dbUser.status === 'Suspended') {
+        return res.status(401).json({
+          success: false,
+          message: 'Your account has been suspended. Please contact the administrator.',
+        });
+      }
     }
 
     req.user = decoded;

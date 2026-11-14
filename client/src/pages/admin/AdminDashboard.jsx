@@ -77,6 +77,31 @@ export const AdminDashboard = () => {
     fetchStats();
   }, [activeTab]);
 
+  // Immediately log out if the user's account is suspended or token is invalidated
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await api.verifyAuth();
+        if (!res.success) {
+          logout();
+          navigate('/admin/login');
+        }
+      } catch (_) {}
+    };
+
+    checkSession();
+    const interval = setInterval(checkSession, 30000);
+    window.addEventListener('focus', checkSession);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkSession();
+    });
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkSession);
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
