@@ -22,7 +22,7 @@ router.get('/', verifyAdmin, async (req, res) => {
 // POST /api/users - Create new admin user
 router.post('/', verifyAdmin, async (req, res) => {
   try {
-    const { name, username, password, email, role = 'Managing Partner', status = 'Active', permissions } = req.body;
+    const { name, username, password, email, role = 'Managing Partner', status = 'Active', permissions, assignedProperties } = req.body;
 
     if (!name || !username || !password) {
       return res.status(400).json({
@@ -51,6 +51,7 @@ router.post('/', verifyAdmin, async (req, res) => {
       status,
       isPrimaryAdmin: false,
       ...(Array.isArray(permissions) ? { permissions } : {}),
+      ...(Array.isArray(assignedProperties) ? { assignedProperties } : {}),
     });
 
     const saved = await newUser.save();
@@ -71,7 +72,7 @@ router.post('/', verifyAdmin, async (req, res) => {
 router.put('/:id', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, role, status, newPassword, permissions } = req.body;
+    const { name, email, role, status, newPassword, permissions, assignedProperties } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -92,6 +93,9 @@ router.put('/:id', verifyAdmin, async (req, res) => {
     if (status) user.status = status;
     if (Array.isArray(permissions)) {
       user.permissions = permissions;
+    }
+    if (Array.isArray(assignedProperties)) {
+      user.assignedProperties = assignedProperties;
     }
 
     // Update password if provided

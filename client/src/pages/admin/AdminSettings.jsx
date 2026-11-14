@@ -27,6 +27,7 @@ export const AdminSettings = () => {
   const { user: currentUser } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState('leadSources'); // 'leadSources' | 'locations' | 'users'
   const [users, setUsers] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -56,6 +57,7 @@ export const AdminSettings = () => {
     role: 'Managing Partner',
     status: 'Active',
     permissions: ALL_MODULES.map((m) => m.id),
+    assignedProperties: [],
   };
   const [formData, setFormData] = useState(initialForm);
 
@@ -73,8 +75,20 @@ export const AdminSettings = () => {
     }
   };
 
+  const fetchProperties = async () => {
+    try {
+      const res = await api.getProperties({ limit: 100 });
+      if (res.success && res.data) {
+        setProperties(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch properties:', err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchProperties();
   }, []);
 
   const openCreateModal = () => {
@@ -97,6 +111,9 @@ export const AdminSettings = () => {
         u.permissions && u.permissions.length > 0
           ? u.permissions
           : ALL_MODULES.map((m) => m.id),
+      assignedProperties: (u.assignedProperties || []).map((p) =>
+        typeof p === 'string' ? p : p._id
+      ),
     });
     setFormError('');
     setIsModalOpen(true);
@@ -122,6 +139,7 @@ export const AdminSettings = () => {
           role: formData.role,
           status: formData.status,
           permissions: formData.permissions,
+          assignedProperties: formData.assignedProperties,
           ...(formData.password ? { newPassword: formData.password } : {}),
         });
 
@@ -629,6 +647,46 @@ export const AdminSettings = () => {
                   })}
                 </div>
               </div>
+
+              {/* Assigned Projects (Sales Rep only) */}
+              {formData.role === 'Sales Rep' && (
+                <div>
+                  <label className="block text-[11px] font-bold text-charcoal-600 uppercase tracking-wider mb-2">
+                    Assigned Projects / Properties
+                  </label>
+                  <div className="max-h-36 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-xl bg-gray-50 border border-gray-200">
+                    {properties.length === 0 ? (
+                      <span className="text-xs text-charcoal-400 col-span-2">
+                        No properties available.
+                      </span>
+                    ) : (
+                      properties.map((prop) => {
+                        const isAssigned = (formData.assignedProperties || []).includes(prop._id);
+                        return (
+                          <label
+                            key={prop._id}
+                            className="flex items-center gap-2 text-xs font-medium text-primary cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isAssigned}
+                              onChange={(e) => {
+                                const current = formData.assignedProperties || [];
+                                const updated = e.target.checked
+                                  ? [...new Set([...current, prop._id])]
+                                  : current.filter((id) => id !== prop._id);
+                                setFormData({ ...formData, assignedProperties: updated });
+                              }}
+                              className="rounded border-gray-300 text-gold focus:ring-gold"
+                            />
+                            <span className="truncate">{prop.title}</span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
                 <button

@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: ['enquiries', 'sellRequests', 'siteVisits', 'followUps', 'properties', 'settings'],
     },
+    assignedProperties: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Property',
+      },
+    ],
     lastLogin: {
       type: Date,
       default: null,

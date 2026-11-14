@@ -1,6 +1,7 @@
 import express from 'express';
 import Enquiry from '../models/Enquiry.js';
 import Property from '../models/Property.js';
+import User from '../models/User.js';
 import { verifyAdmin, verifySuperAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -95,6 +96,20 @@ router.get('/', verifyAdmin, async (req, res) => {
     } = req.query;
 
     const query = {};
+
+    // Sales Reps only see enquiries assigned to them or their assigned projects
+    if (req.user?.userRole === 'Sales Rep') {
+      const salesRep = await User.findById(req.user.id).select('assignedProperties');
+      const assignedProps = salesRep?.assignedProperties || [];
+      query.$and = [
+        {
+          $or: [
+            { assignedTo: req.user.id },
+            ...(assignedProps.length > 0 ? [{ property: { $in: assignedProps } }] : []),
+          ],
+        },
+      ];
+    }
 
     if (isFollowUp === 'true') {
       // Must have scheduled a follow-up date
