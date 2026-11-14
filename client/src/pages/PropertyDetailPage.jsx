@@ -164,7 +164,7 @@ export const PropertyDetailPage = () => {
           <div className="text-left lg:text-right">
             <span className="text-xs uppercase font-bold text-charcoal-500 block">Pricing</span>
             <span className="text-2xl lg:text-3xl font-extrabold text-gold block font-sans">
-              Price on Request
+              {property.priceDisplay || 'Price on Request'}
             </span>
             <span className="text-[11px] text-charcoal-500">*Confidential advisory upon verified inquiry</span>
           </div>
