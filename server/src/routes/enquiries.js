@@ -43,6 +43,44 @@ router.post('/', async (req, res) => {
       if (prop) finalPropertyTitle = prop.title;
     }
 
+    let finalAssignedTo = assignedTo || null;
+    let finalAssignedToName = assignedToName || '';
+
+    // Round-robin auto-assignment to active Sales Reps assigned to this property
+    if (propertyId && !finalAssignedTo) {
+      const salesReps = await User.find({
+        role: 'Sales Rep',
+        status: 'Active',
+        assignedProperties: propertyId,
+      })
+        .select('_id name')
+        .sort({ _id: 1 });
+
+      if (salesReps.length > 0) {
+        let nextIndex = 0;
+        if (salesReps.length > 1) {
+          const repIds = salesReps.map((r) => r._id);
+          const lastEnquiry = await Enquiry.findOne({
+            propertyId,
+            assignedTo: { $in: repIds },
+          })
+            .select('assignedTo')
+            .sort({ createdAt: -1 });
+
+          if (lastEnquiry && lastEnquiry.assignedTo) {
+            const lastIdx = salesReps.findIndex(
+              (r) => String(r._id) === String(lastEnquiry.assignedTo)
+            );
+            if (lastIdx !== -1) {
+              nextIndex = (lastIdx + 1) % salesReps.length;
+            }
+          }
+        }
+        finalAssignedTo = salesReps[nextIndex]._id;
+        finalAssignedToName = salesReps[nextIndex].name;
+      }
+    }
+
     const enquiry = new Enquiry({
       type,
       name: name.trim(),
@@ -57,8 +95,8 @@ router.post('/', async (req, res) => {
       sellDetails: sellDetails || {},
       status,
       temperature,
-      assignedTo: assignedTo || null,
-      assignedToName: assignedToName || '',
+      assignedTo: finalAssignedTo,
+      assignedToName: finalAssignedToName,
       leadSource: leadSource || '',
       referralName: referralName || '',
       brokerName: brokerName || '',
@@ -105,7 +143,7 @@ router.get('/', verifyAdmin, async (req, res) => {
         {
           $or: [
             { assignedTo: req.user.id },
-            ...(assignedProps.length > 0 ? [{ property: { $in: assignedProps } }] : []),
+            ...(assignedProps.length > 0 ? [{ propertyId: { $in: assignedProps } }] : []),
           ],
         },
       ];
