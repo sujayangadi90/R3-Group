@@ -72,6 +72,7 @@ const DEFAULT_LOCATIONS = [
 
 export const AdminProperties = () => {
   const [properties, setProperties] = useState([]);
+  const [copiedToast, setCopiedToast] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
@@ -414,6 +415,12 @@ export const AdminProperties = () => {
 
   return (
     <div className="space-y-6">
+      {copiedToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold shadow-lg border border-gold/40">
+          <CheckCircle2 className="w-4 h-4 text-gold" />
+          <span>Link copied</span>
+        </div>
+      )}
       {/* Action Toolbar */}
       <div className="bg-white p-5 rounded-2xl border border-[#ECECE8] shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         {/* Search */}
@@ -584,6 +591,8 @@ export const AdminProperties = () => {
                         onClick={() => {
                           const lpUrl = `${window.location.origin}/lp/${item.slug || item._id}`;
                           navigator.clipboard.writeText(lpUrl);
+                          setCopiedToast(true);
+                          setTimeout(() => setCopiedToast(false), 2500);
                         }}
                         className="inline-block p-1.5 rounded-lg border border-gray-200 text-gold hover:border-gold transition-colors cursor-pointer"
                         title="Copy FB/Insta Landing Page Link"
