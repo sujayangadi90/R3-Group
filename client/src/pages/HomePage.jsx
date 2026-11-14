@@ -417,9 +417,9 @@ export const HomePage = () => {
               <div className="w-12 h-12 rounded-xl bg-gold-subtle text-gold flex items-center justify-center mb-6">
                 <FileCheck2 className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-primary mb-3">Institutional Rigor</h3>
+              <h3 className="text-xl font-bold text-primary mb-3">Project Management &amp; Construction</h3>
               <p className="text-sm text-charcoal-600 leading-relaxed">
-                Every asset under our mandate is examined across 70+ legal and regulatory touchpoints, Title Deeds, IOD/CC approvals, OC status, and RERA compliance.
+                R3 Group delivers end-to-end project management consultancy and turnkey construction—overseeing planning, engineering, quality control, cost optimization, and timely execution from concept to handover.
               </p>
             </div>
           </div>
