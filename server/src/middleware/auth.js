@@ -16,13 +16,19 @@ export const verifyAdmin = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Forbidden. Admin privileges required.' });
     }
 
-    // Immediately reject suspended or deleted accounts
+    // Immediately reject suspended, deleted, or password-changed accounts
     if (decoded.id) {
-      const dbUser = await User.findById(decoded.id).select('status');
+      const dbUser = await User.findById(decoded.id).select('status tokenVersion');
       if (!dbUser || dbUser.status === 'Suspended') {
         return res.status(401).json({
           success: false,
           message: 'Your account has been suspended. Please contact the administrator.',
+        });
+      }
+      if ((dbUser.tokenVersion || 0) !== (decoded.tokenVersion || 0)) {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired due to password change. Please sign in again.',
         });
       }
     }

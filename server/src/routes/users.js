@@ -98,9 +98,10 @@ router.put('/:id', verifyAdmin, async (req, res) => {
       user.assignedProperties = assignedProperties;
     }
 
-    // Update password if provided
+    // Update password if provided and invalidate existing sessions
     if (newPassword && newPassword.trim().length > 0) {
       user.password = newPassword.trim();
+      user.tokenVersion = (user.tokenVersion || 0) + 1;
     }
 
     await user.save();
