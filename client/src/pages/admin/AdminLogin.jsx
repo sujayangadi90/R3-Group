@@ -4,8 +4,8 @@ import { Lock, User, ShieldCheck, ArrowRight, Eye, EyeOff, AlertCircle } from 'l
 import { useAuth } from '../../context/AuthContext';
 
 export const AdminLogin = () => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('ramesh');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -132,17 +132,6 @@ export const AdminLogin = () => {
               </button>
             </div>
           </form>
-
-          {/* Quick Creds Info box */}
-          <div className="mt-6 pt-5 border-t border-gray-100 text-center">
-            <div className="inline-block p-3 rounded-xl bg-surface-warm border border-gray-200 text-left text-xs text-charcoal-600">
-              <span className="font-bold text-primary block mb-0.5">Admin Credentials:</span>
-              <div className="font-mono text-[11px] space-y-0.5">
-                <div>Username: <strong className="text-primary">admin</strong></div>
-                <div>Password: <strong className="text-primary">ramesh</strong></div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
