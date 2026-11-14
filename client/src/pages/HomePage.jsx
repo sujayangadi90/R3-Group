@@ -397,9 +397,9 @@ export const HomePage = () => {
               <div className="w-12 h-12 rounded-xl bg-gold-subtle text-gold flex items-center justify-center mb-6">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-primary mb-3">Absolute Discretion</h3>
+              <h3 className="text-xl font-bold text-primary mb-3">Buying &amp; Selling</h3>
               <p className="text-sm text-charcoal-600 leading-relaxed">
-                Trophy real estate transactions demand absolute confidentiality. We protect client identity through blinded dossiers, NDAs, and private off-market listings.
+                Whether acquiring a prime residence or divesting a high-value asset, R3 Group guides you through property sourcing, valuation, negotiation, legal due diligence, and seamless closing.
               </p>
             </div>
 
