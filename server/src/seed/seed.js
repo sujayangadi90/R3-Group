@@ -11,22 +11,31 @@ const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/r3_group_real_
 
 export const seedDatabase = async (force = false) => {
   try {
-    // 1. Ensure default Admin User exists
-    const defaultUsername = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
-    const defaultPassword = process.env.ADMIN_PASSWORD || 'ramesh';
+    // 1. Ensure default Admin User exists & migrate primary admin to 'superadmin'
+    const defaultUsername = (process.env.ADMIN_USERNAME || 'superadmin').toLowerCase();
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'ramesh@123';
 
-    const existingAdmin = await User.findOne({ username: defaultUsername });
-    if (!existingAdmin) {
-      await User.create({
-        username: defaultUsername,
-        password: defaultPassword,
-        name: 'R3 Group Administrator',
-        email: 'admin@r3group.in',
-        role: 'Super Admin',
-        status: 'Active',
-        isPrimaryAdmin: true,
-      });
-      console.log(`[Database Seed] Default admin user '${defaultUsername}' initialized.`);
+    const primaryAdmin = await User.findOne({ isPrimaryAdmin: true });
+    if (primaryAdmin && primaryAdmin.username !== defaultUsername) {
+      primaryAdmin.username = defaultUsername;
+      primaryAdmin.password = defaultPassword;
+      primaryAdmin.tokenVersion = (primaryAdmin.tokenVersion || 0) + 1;
+      await primaryAdmin.save();
+      console.log(`[Database Seed] Migrated primary admin to '${defaultUsername}' and invalidated old sessions.`);
+    } else if (!primaryAdmin) {
+      const existingAdmin = await User.findOne({ username: defaultUsername });
+      if (!existingAdmin) {
+        await User.create({
+          username: defaultUsername,
+          password: defaultPassword,
+          name: 'R3 Group Administrator',
+          email: 'admin@r3group.in',
+          role: 'Super Admin',
+          status: 'Active',
+          isPrimaryAdmin: true,
+        });
+        console.log(`[Database Seed] Default admin user '${defaultUsername}' initialized.`);
+      }
     }
 
     // 2. Properties

@@ -9,8 +9,8 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const defaultUsername = (process.env.ADMIN_USERNAME || 'admin').toLowerCase();
-    const defaultPassword = process.env.ADMIN_PASSWORD || 'ramesh';
+    const defaultUsername = (process.env.ADMIN_USERNAME || 'superadmin').toLowerCase();
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'ramesh@123';
 
     if (!username || !password) {
       return res.status(400).json({
