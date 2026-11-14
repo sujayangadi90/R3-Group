@@ -157,7 +157,7 @@ export const PropertyDetailPage = () => {
             </h1>
             <p className="mt-1 flex items-center gap-1.5 text-sm text-charcoal-600">
               <MapPin className="w-4 h-4 text-gold shrink-0" />
-              <span>{property.address || property.location}{property.city ? `, ${property.city}` : ''}</span>
+              <span>{property.location || property.address}{property.city ? `, ${property.city}` : ''}</span>
             </p>
           </div>
 
