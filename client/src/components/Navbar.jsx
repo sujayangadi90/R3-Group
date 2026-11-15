@@ -26,6 +26,7 @@ export const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'Buy Property', path: '/properties' },
     { name: 'Sell Property', path: '/sell' },
+    { name: 'Channel Partners', path: '/channel-partners' },
     { name: 'About Us', path: '/about' },
     { name: 'Contact Us', path: '/contact' },
   ];
