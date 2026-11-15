@@ -82,7 +82,7 @@ export const ChannelPartnersPage = () => {
         email: formData.customerEmail.trim(),
         propertyId: isNotSure ? null : selectedProp._id,
         propertyTitle: isNotSure ? 'Not Sure' : selectedProp.title,
-        leadSource: formData.partnerName.trim(),
+        leadSource: 'Broker / Channel Partner',
         brokerName: formData.partnerName.trim(),
         message: fullMessage,
       });
