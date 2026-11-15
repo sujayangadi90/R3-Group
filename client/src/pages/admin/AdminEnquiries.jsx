@@ -1248,6 +1248,14 @@ export const AdminEnquiries = () => {
                     className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
                   >
                     <option value="">Select / Update Source...</option>
+                    {selectedEnquiry.leadSource &&
+                      !leadSourcesList.some(
+                        (src) => src.name.toLowerCase() === selectedEnquiry.leadSource.toLowerCase()
+                      ) && (
+                        <option value={selectedEnquiry.leadSource}>
+                          {selectedEnquiry.leadSource}
+                        </option>
+                      )}
                     {leadSourcesList.map((src) => (
                       <option key={src._id || src.name} value={src.name}>
                         {src.name}
