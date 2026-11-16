@@ -150,6 +150,11 @@ const enquirySchema = new mongoose.Schema(
         },
       },
     ],
+    externalLeadId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,
