@@ -1328,6 +1328,72 @@ export const AdminEnquiries = () => {
                 </div>
               </div>
 
+              {/* Property Interested In Selector */}
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xs space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-gold" />
+                    <span>Property Interested In</span>
+                  </h4>
+                  {selectedEnquiry.propertyTitle && (
+                    <span className="text-[11px] font-semibold text-gold-dark truncate max-w-[260px]">
+                      {selectedEnquiry.propertyTitle}
+                    </span>
+                  )}
+                </div>
+                <select
+                  value={
+                    selectedEnquiry.propertyId?._id ||
+                    selectedEnquiry.propertyId ||
+                    (selectedEnquiry.propertyTitle ? '__custom__' : '')
+                  }
+                  onChange={async (e) => {
+                    const pid = e.target.value;
+                    if (pid === '__custom__') return;
+                    const p = propertiesList.find((item) => item._id === pid);
+                    const newPropertyId = pid || null;
+                    const newPropertyTitle = p ? p.title : '';
+                    try {
+                      const res = await api.updateEnquiry(selectedEnquiry._id, {
+                        propertyId: newPropertyId,
+                        propertyTitle: newPropertyTitle,
+                      });
+                      if (res.success) {
+                        setSelectedEnquiry({
+                          ...selectedEnquiry,
+                          propertyId: newPropertyId,
+                          propertyTitle: newPropertyTitle,
+                        });
+                        setSiteVisitPropertyId(pid || '');
+                        setEnquiries((prev) =>
+                          prev.map((item) =>
+                            item._id === selectedEnquiry._id
+                              ? { ...item, propertyId: newPropertyId, propertyTitle: newPropertyTitle }
+                              : item
+                          )
+                        );
+                      }
+                    } catch (err) {
+                      console.error('Failed to update property interested in:', err);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 text-xs font-semibold text-primary bg-white focus:outline-none cursor-pointer"
+                >
+                  <option value="">General Luxury Advisory (Unspecified)</option>
+                  {selectedEnquiry.propertyTitle &&
+                    !(selectedEnquiry.propertyId?._id || selectedEnquiry.propertyId) && (
+                      <option value="__custom__">
+                        {selectedEnquiry.propertyTitle} (External / Unmatched)
+                      </option>
+                    )}
+                  {propertiesList.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.title} ({p.propertyType} - {p.location})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Schedule Site Visit Section */}
               <div className="p-5 rounded-xl bg-blue-50/50 border border-blue-200/80 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
