@@ -1332,7 +1332,7 @@ export const AdminEnquiries = () => {
               <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xs space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <h4 className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-gold" />
+                    <Building className="w-3.5 h-3.5 text-gold" />
                     <span>Property Interested In</span>
                   </h4>
                   {selectedEnquiry.propertyTitle && (
