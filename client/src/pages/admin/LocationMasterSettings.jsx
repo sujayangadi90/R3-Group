@@ -9,6 +9,7 @@ import {
   AlertCircle,
   Building,
   Navigation,
+  Edit2,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
