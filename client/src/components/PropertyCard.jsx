@@ -90,29 +90,6 @@ export const PropertyCard = ({ property, onEnquire, onBookVisit }) => {
 
           {/* Specifications Grid */}
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2 text-xs text-charcoal-600">
-            {property.bedrooms ? (
-              <div className="flex items-center gap-1.5">
-                <Bed className="w-4 h-4 text-gold shrink-0" />
-                <span className="truncate">
-                  {typeof property.bedrooms === 'string' && property.bedrooms.includes('BHK')
-                    ? property.bedrooms
-                    : `${property.bedrooms} BHK`}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-gold shrink-0" />
-                <span className="truncate">{property.propertyType}</span>
-              </div>
-            )}
-
-            {property.carpetArea && property.carpetArea !== 'On Request' && (
-              <div className="flex items-center gap-1.5">
-                <Maximize2 className="w-4 h-4 text-gold shrink-0" />
-                <span className="truncate">{property.carpetArea?.toLocaleString()} sq.ft</span>
-              </div>
-            )}
-
             <div className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-gold shrink-0" />
               <span className="truncate">{property.possessionDate || 'Immediate'}</span>
