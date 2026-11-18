@@ -32,6 +32,7 @@ export const LocationMasterSettings = () => {
   // Add Locality Inline / Modal State
   const [isLocalityModalOpen, setIsLocalityModalOpen] = useState(false);
   const [activeCityForLocality, setActiveCityForLocality] = useState(null);
+  const [editingLocality, setEditingLocality] = useState(null);
   const [localityFormData, setLocalityFormData] = useState({ name: '', pincode: '' });
   const [localityLoading, setLocalityLoading] = useState(false);
 
@@ -142,7 +143,16 @@ export const LocationMasterSettings = () => {
   // Locality Handlers
   const handleOpenAddLocality = (city) => {
     setActiveCityForLocality(city);
+    setEditingLocality(null);
     setLocalityFormData({ name: '', pincode: '' });
+    setErrorMsg('');
+    setIsLocalityModalOpen(true);
+  };
+
+  const openEditLocalityModal = (city, loc) => {
+    setActiveCityForLocality(city);
+    setEditingLocality(loc);
+    setLocalityFormData({ name: loc.name || '', pincode: loc.pincode || '' });
     setErrorMsg('');
     setIsLocalityModalOpen(true);
   };
@@ -157,21 +167,27 @@ export const LocationMasterSettings = () => {
     setLocalityLoading(true);
     setErrorMsg('');
     try {
-      const res = await api.addLocality(activeCityForLocality._id, localityFormData);
+      const res = editingLocality
+        ? await api.updateLocality(activeCityForLocality._id, editingLocality._id, localityFormData)
+        : await api.addLocality(activeCityForLocality._id, localityFormData);
+
       if (res.success && res.data) {
         setSuccessMsg(
-          `Locality "${localityFormData.name}" added to ${activeCityForLocality.name}.`
+          editingLocality
+            ? `Locality "${localityFormData.name}" updated in ${activeCityForLocality.name}.`
+            : `Locality "${localityFormData.name}" added to ${activeCityForLocality.name}.`
         );
         setIsLocalityModalOpen(false);
+        setEditingLocality(null);
         // Update local city record
         setLocations((prev) =>
           prev.map((c) => (c._id === activeCityForLocality._id ? res.data : c))
         );
       } else {
-        setErrorMsg(res.message || 'Failed to add locality.');
+        setErrorMsg(res.message || `Failed to ${editingLocality ? 'update' : 'add'} locality.`);
       }
     } catch (err) {
-      setErrorMsg('Network error adding locality.');
+      setErrorMsg(`Network error ${editingLocality ? 'updating' : 'adding'} locality.`);
     } finally {
       setLocalityLoading(false);
     }
@@ -344,13 +360,22 @@ export const LocationMasterSettings = () => {
                               )}
                             </div>
 
-                            <button
-                              onClick={() => handleDeleteLocality(city._id, loc._id, loc.name)}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => openEditLocalityModal(city, loc)}
+                                className="p-1 text-gray-400 hover:text-gold transition-colors"
+                                title="Edit Locality"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteLocality(city._id, loc._id, loc.name)}
                               className="opacity-0 group-hover:opacity-100 text-charcoal-400 hover:text-red-600 p-1 rounded transition-all cursor-pointer"
                               title="Delete locality"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
+                            </div>
                           </div>
                         ))}
                       </div>
