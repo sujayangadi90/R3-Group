@@ -110,7 +110,7 @@ export const ChannelPartnersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FAF9F6] pt-28 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
