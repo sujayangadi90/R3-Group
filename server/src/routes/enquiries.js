@@ -135,20 +135,6 @@ router.get('/', verifyAdmin, async (req, res) => {
 
     const query = {};
 
-    // Sales Reps only see enquiries assigned to them or their assigned projects
-    if (req.user?.userRole === 'Sales Rep') {
-      const salesRep = await User.findById(req.user.id).select('assignedProperties');
-      const assignedProps = salesRep?.assignedProperties || [];
-      query.$and = [
-        {
-          $or: [
-            { assignedTo: req.user.id },
-            ...(assignedProps.length > 0 ? [{ propertyId: { $in: assignedProps } }] : []),
-          ],
-        },
-      ];
-    }
-
     if (isFollowUp === 'true') {
       // Must have scheduled a follow-up date
       query.followUpDate = { $exists: true, $ne: '' };
